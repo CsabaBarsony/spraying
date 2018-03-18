@@ -1,0 +1,61 @@
+@startuml
+
+title Section
+
+class section {
+    --
+    distance
+    lat
+    lon
+    sprayed
+    water
+    water_dosage
+    weed_infestation
+}
+
+class sector {
+    --
+    name
+}
+
+class spraying {
+    section_id
+    chemical_id
+    --
+    quantity
+    dosage
+    left_nozzle_majority
+    right_nozzle_majority
+}
+
+class sector_spraying {
+    sector_id
+    spraying_id
+    --
+    quantity
+}
+
+class weed_infestation {
+    section_id
+    sector_id
+    --
+    percent
+}
+
+class chemical {
+    --
+    name
+}
+
+section <-- spraying
+section <-- weed_infestation
+
+sector <-- sector_spraying
+sector <-- weed_infestation
+
+chemical <-- spraying
+
+spraying <-- sector_spraying
+
+
+@enduml
