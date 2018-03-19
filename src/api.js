@@ -626,42 +626,6 @@ data.map((row, index) => {
   sectionsData.push(rowData)
 })
 
-const sectionsExample = [
-  {
-    id: 1,
-    distance: 100,
-    position: {
-      lat: 123,
-      lon: 123,
-    },
-    sprayed: true,
-    water: 1,
-    waterDosage: 2,
-    weedInfestation: 3,
-    chemicals: [
-      {
-        id: 1,
-        quantity: 1,
-        dosage: 2,
-        leftNozzleMajority: true,
-        rightNozzleMajority: false,
-        sectors: [
-          {
-            id: 1,
-            dosage: 2,
-          },
-        ],
-      },
-    ],
-    sectors: [
-      {
-        id: 1,
-        weedInfestation: 10,
-      },
-    ],
-  },
-]
-
 export const api = {
   getSectionData: () => {
     return new Promise(resolve => {

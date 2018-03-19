@@ -1,26 +1,27 @@
 import React, {Component} from 'react'
 import update from 'immutability-helper'
-import * as ol from 'openlayers'
+// import * as ol from 'openlayers'
 import {
   Navbar,
   Panel,
-  FormControl,
   FormGroup,
-  ControlLabel,
   Checkbox,
-  Button,
   Radio,
   Grid,
   Row,
   Col,
   Table,
+  Label,
 } from 'react-bootstrap'
 import _ from 'lodash'
 
 import {api} from './api'
 
+const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? 'yes' : 'no'}</Label>
+
 class App extends Component {
   state = {
+    isOptionsPanelOpened: false,
     sections: [],
     selectedSectorIndex: 10,
     sectors: [
@@ -79,17 +80,17 @@ class App extends Component {
       {
         id: 2,
         name: 'Panic Free',
-        selected: true,
+        selected: false,
       },
       {
         id: 3,
         name: 'Vival',
-        selected: true,
+        selected: false,
       },
       {
         id: 4,
         name: 'Genoxone',
-        selected: true,
+        selected: false,
       },
     ],
     columns: [
@@ -155,31 +156,6 @@ class App extends Component {
   render() {
     const state = this.state
 
-    const testTable = (
-      <Table striped bordered condensed hover>
-        <thead>
-          <tr>
-            <th colSpan="2">common</th>
-            <th colSpan="2">chemical</th>
-          </tr>
-          <tr>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-            <th>4</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>x</td>
-            <td>y</td>
-            <td>z</td>
-            <td>w</td>
-          </tr>
-        </tbody>
-      </Table>
-    )
-
     const getColumnsLength = () => {
       let length = 0
       _.each(state.columns, column => {
@@ -207,15 +183,15 @@ class App extends Component {
               const columnHeaders = []
 
               if(state.selectedSectorIndex === 10) {
-                columnHeaders.push(<th key={chemical.name + '1'}>quantity</th>)
+                columnHeaders.push(<th key={chemical.name + '1'}>Quantity</th>)
               }
               else {
-                columnHeaders.push(<th key={chemical.name + '2'}>quantity of sector {state.selectedSectorIndex + 1}</th>)
+                columnHeaders.push(<th key={chemical.name + '2'}>Quantity of sector {state.selectedSectorIndex + 1}</th>)
               }
 
-              columnHeaders.push(<th key={chemical.name + '3'}>dosage</th>)
-              columnHeaders.push(<th key={chemical.name + '4'}>left nozzle majority</th>)
-              columnHeaders.push(<th key={chemical.name + '5'}>right nozzle majority</th>)
+              columnHeaders.push(<th key={chemical.name + '3'}>Dosage</th>)
+              columnHeaders.push(<th key={chemical.name + '4'}>Left nozzle majority</th>)
+              columnHeaders.push(<th key={chemical.name + '5'}>Right nozzle majority</th>)
 
               return columnHeaders
             })}
@@ -223,22 +199,30 @@ class App extends Component {
         </thead>
         <tbody>
           {state.sections.slice(0, 10).map((section, sectionIndex) => {
+            const data = section.data
+
+            const sectionColumns = []
+
+            state.columns[0].show && sectionColumns.push(<td key={'section' + sectionIndex + 'distance'}>{data.distance}</td>)
+
+            state.columns[1].show && sectionColumns.push(
+              <td key={'section' + sectionIndex + 'position'}>
+                <a>
+                  {data.position.lat + ', ' + data.position.lon}
+                </a>
+              </td>
+            )
+
+            state.columns[2].show && sectionColumns.push(<td key={'section' + sectionIndex + 'sprayed'}>{boolLabel(data.sprayed)}</td>)
+            state.columns[3].show && sectionColumns.push(<td key={'section' + sectionIndex + 'water'}>{data.water}</td>)
+            state.columns[4].show && sectionColumns.push(<td key={'section' + sectionIndex + 'waterDosage'}>{data.waterDosage}</td>)
+            state.columns[5].show && sectionColumns.push(<td key={'section' + sectionIndex + 'weedInfestation'}>{data.weedInfestation}</td>)
+
             return (
               <tr
                 key={sectionIndex}
               >
-                {state.columns.map((column, columnIndex) => {
-                  if(column.show) {
-                    return (
-                      <td
-                        key={'section' + sectionIndex + 'column' + columnIndex}
-                      >
-                        {section.data[column.key]}
-                      </td>
-                    )
-                  }
-                  else return null
-                })}
+                {sectionColumns}
                 {state.chemicals.map((chemical, chemicalIndex) => {
                   if(chemical.selected) {
                     const chemicalColumns = []
@@ -254,8 +238,8 @@ class App extends Component {
                     }
 
                     chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '2'}>{chemicalData.dosage}</td>)
-                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '3'}>{chemicalData.leftNozzleMajority}</td>)
-                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '4'}>{chemicalData.rightNozzleMajority}</td>)
+                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '3'}>{boolLabel(chemicalData.leftNozzleMajority)}</td>)
+                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '4'}>{boolLabel(chemicalData.rightNozzleMajority)}</td>)
 
                     return chemicalColumns
                   }
@@ -268,123 +252,115 @@ class App extends Component {
       </Table>
     )
 
-    const sections = state.sections.map((section, index) => (
-      <div
-        key={index}
+    const control = (
+      <Panel
+        expanded={state.isOptionsPanelOpened}
+        onToggle={isOptionsPanelOpened => this.setState({isOptionsPanelOpened})}
       >
-        <Checkbox
-          checked={section.checked}
-          onChange={e => {
-            const checked = e.target.checked
+        <Panel.Heading>
+          <Panel.Title
+            toggle
+          >Table settings</Panel.Title>
+        </Panel.Heading>
+        <Panel.Collapse>
+          <Panel.Body>
+            <Grid>
+              <Row>
+                <Col
+                  xs={4}
+                >
+                  <h4>Sectors</h4>
+                  <FormGroup
+                    onChange={e => this.setState({selectedSectorIndex: Number(e.target.dataset.index)})}
+                  >
+                    <Radio
+                      defaultChecked
+                      name="sector"
+                      data-index={10}
+                    >
+                      All Sectors
+                    </Radio>
+                    {state.sectors.map((sector, index) => (
+                      <Radio
+                        key={index}
+                        name="sector"
+                        data-index={index}
+                      >
+                        {sector.name}
+                      </Radio>
+                    ))}
+                  </FormGroup>
+                </Col>
+                <Col
+                  xs={4}
+                >
+                  <h4>Chemicals</h4>
+                  <FormGroup
+                    onChange={e => {
+                      const selected = e.target.checked
+                      const index = e.target.dataset.index
 
-            this.setState(state => update(state, {
-              sections: {
-                [index]: {
-                  checked: {
-                    $set: checked,
-                  },
-                },
-              },
-            }))
-          }}
-        />
-        <span>{section.data.id}</span>
-        <span>{section.data.distance}</span>
-        <span>{section.data.position.lat}</span>
-        <span>{section.data.position.lon}</span>
-      </div>
-    ))
+                      this.setState(state => update(state, {
+                        chemicals: {
+                          [index]: {
+                            selected: {
+                              $set: selected,
+                            },
+                          },
+                        },
+                      }))
+                    }}
+                  >
+                    {state.chemicals.map((chemical, index) => (
+                      <Checkbox
+                        key={index}
+                        data-index={index}
+                        checked={chemical.selected}
+                        onChange={() => {}}
+                      >
+                        {chemical.name}
+                      </Checkbox>
+                    ))}
+                  </FormGroup>
+                </Col>
+                <Col
+                  xs={4}
+                >
+                  <h4>Columns</h4>
+                  <FormGroup
+                    onChange={e => {
+                      const show = e.target.checked
+                      const index = e.target.dataset.index
 
-    const control = (<Grid>
-      <Row>
-        <Col
-          xs={4}
-        >
-          <FormGroup
-            onChange={e => this.setState({selectedSectorIndex: Number(e.target.dataset.index)})}
-          >
-            <Radio
-              defaultChecked
-              name="sector"
-              data-index={10}
-            >
-              All Sectors
-            </Radio>
-            {state.sectors.map((sector, index) => (
-              <Radio
-                key={index}
-                name="sector"
-                data-index={index}
-              >
-                {sector.name}
-              </Radio>
-            ))}
-          </FormGroup>
-        </Col>
-        <Col
-          xs={4}
-        >
-          <FormGroup
-            onChange={e => {
-              const selected = e.target.checked
-              const index = e.target.dataset.index
-
-              this.setState(state => update(state, {
-                chemicals: {
-                  [index]: {
-                    selected: {
-                      $set: selected,
-                    },
-                  },
-                },
-              }))
-            }}
-          >
-            {state.chemicals.map((chemical, index) => (
-              <Checkbox
-                key={index}
-                data-index={index}
-                checked={chemical.selected}
-                onChange={() => {}}
-              >
-                {chemical.name}
-              </Checkbox>
-            ))}
-          </FormGroup>
-        </Col>
-        <Col
-          xs={4}
-        >
-          <FormGroup
-            onChange={e => {
-              const show = e.target.checked
-              const index = e.target.dataset.index
-
-              this.setState(state => update(state, {
-                columns: {
-                  [index]: {
-                    show: {
-                      $set: show,
-                    },
-                  },
-                },
-              }))
-            }}
-          >
-            {state.columns.map((column, index) => (
-              <Checkbox
-                key={index}
-                data-index={index}
-                checked={column.show}
-                onChange={() => {}}
-              >
-                {column.label}
-              </Checkbox>
-            ))}
-          </FormGroup>
-        </Col>
-      </Row>
-    </Grid>)
+                      this.setState(state => update(state, {
+                        columns: {
+                          [index]: {
+                            show: {
+                              $set: show,
+                            },
+                          },
+                        },
+                      }))
+                    }}
+                  >
+                    {state.columns.map((column, index) => (
+                      <Checkbox
+                        key={index}
+                        data-index={index}
+                        checked={column.show}
+                        onChange={() => {}}
+                      >
+                        {column.label}
+                      </Checkbox>
+                    ))}
+                  </FormGroup>
+                </Col>
+              </Row>
+            </Grid>
+          </Panel.Body>
+        </Panel.Collapse>
+      </Panel>
+    )
 
     return (
       <div>
