@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import update from 'immutability-helper'
-// import * as ol from 'openlayers'
+import * as ol from 'openlayers'
 import {
   Navbar,
   Panel,
@@ -21,6 +21,7 @@ const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? '
 
 class App extends Component {
   state = {
+    map: null,
     isOptionsPanelOpened: false,
     sections: [],
     selectedSectorIndex: 10,
@@ -95,53 +96,47 @@ class App extends Component {
     ],
     columns: [
       {
-        key: 'distance',
-        label: 'Distance',
+        label: 'Distance [m]',
         show: true,
       },
       {
-        key: 'positionx',
         label: 'Position',
         show: true,
       },
       {
-        key: 'sprayed',
         label: 'Sprayed',
         show: true,
       },
       {
-        key: 'water',
-        label: 'Water',
+        label: 'Water [l]',
         show: true,
       },
       {
-        key: 'waterDosage',
-        label: 'Water dosage',
+        label: 'Water dosage [l/ha]',
         show: true,
       },
       {
-        key: 'weedInfestation',
-        label: 'Weed infestation',
+        label: 'Weed infestation [%]',
         show: true,
       },
     ],
   }
 
   componentDidMount() {
-    /*let map = new ol.Map({
-      layers: [
-        new ol.layer.Tile({
-          source: new ol.source.OSM()
-        })
-      ],
-      target: 'map',
-      view: new ol.View({
-        center: [0, 0],
-        zoom: 2
-      })
-    })*/
-
     api.getSectionData().then(sectionData => {
+      const map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.OSM()
+          })
+        ],
+        target: 'map',
+        view: new ol.View({
+          center: [0, 0],
+          zoom: 2
+        })
+      })
+
       const sections = sectionData.map(data => ({
         data,
         checked: false,
@@ -149,7 +144,10 @@ class App extends Component {
 
       sections[0].checked = true
 
-      this.setState({sections})
+      this.setState({
+        sections,
+        map,
+      })
     })
   }
 
@@ -172,24 +170,38 @@ class App extends Component {
             {state.chemicals.map((chemical, index) => chemical.selected ? <th key={index} colSpan="4">Chemical: {chemical.name}</th> : null)}
           </tr>
           <tr>
-            {state.columns.map((column, index) => column.show ? (
-              <th
-                key={index}
-              >{column.label}</th>
-            ) : null)}
+            {state.columns.map((column, index) => {
+              if(column.show) {
+                if(index === 5 && state.selectedSectorIndex !== 10) {
+                  return (
+                    <th
+                      key={index}
+                    >Sector {state.selectedSectorIndex + 1} {column.label}</th>
+                  )
+                }
+                else {
+                  return (
+                    <th
+                      key={index}
+                    >{column.label}</th>
+                  )
+                }
+              }
+              else return null
+            })}
             {state.chemicals.map(chemical => {
               if(!chemical.selected) return null
 
               const columnHeaders = []
 
               if(state.selectedSectorIndex === 10) {
-                columnHeaders.push(<th key={chemical.name + '1'}>Quantity</th>)
+                columnHeaders.push(<th key={chemical.name + '1'}>Quantity [l]</th>)
               }
               else {
-                columnHeaders.push(<th key={chemical.name + '2'}>Quantity of sector {state.selectedSectorIndex + 1}</th>)
+                columnHeaders.push(<th key={chemical.name + '2'}>Sector {state.selectedSectorIndex + 1} Quantity [l]</th>)
               }
 
-              columnHeaders.push(<th key={chemical.name + '3'}>Dosage</th>)
+              columnHeaders.push(<th key={chemical.name + '3'}>Dosage [l/ha]</th>)
               columnHeaders.push(<th key={chemical.name + '4'}>Left nozzle majority</th>)
               columnHeaders.push(<th key={chemical.name + '5'}>Right nozzle majority</th>)
 
@@ -198,7 +210,7 @@ class App extends Component {
           </tr>
         </thead>
         <tbody>
-          {state.sections.slice(0, 10).map((section, sectionIndex) => {
+          {state.sections.map((section, sectionIndex) => {
             const data = section.data
 
             const sectionColumns = []
@@ -207,7 +219,10 @@ class App extends Component {
 
             state.columns[1].show && sectionColumns.push(
               <td key={'section' + sectionIndex + 'position'}>
-                <a>
+                <a
+                  href="#"
+                  onClick={e => e.preventDefault()}
+                >
                   {data.position.lat + ', ' + data.position.lon}
                 </a>
               </td>
@@ -216,14 +231,21 @@ class App extends Component {
             state.columns[2].show && sectionColumns.push(<td key={'section' + sectionIndex + 'sprayed'}>{boolLabel(data.sprayed)}</td>)
             state.columns[3].show && sectionColumns.push(<td key={'section' + sectionIndex + 'water'}>{data.water}</td>)
             state.columns[4].show && sectionColumns.push(<td key={'section' + sectionIndex + 'waterDosage'}>{data.waterDosage}</td>)
-            state.columns[5].show && sectionColumns.push(<td key={'section' + sectionIndex + 'weedInfestation'}>{data.weedInfestation}</td>)
+
+            const weedInfestationCell = state.selectedSectorIndex === 10 ? (
+              <td key={'section' + sectionIndex + 'weedInfestation'}>{data.weedInfestation}</td>
+            ) : (
+              <td key={'section' + sectionIndex + 'weedInfestation'}>{data.sectors[state.selectedSectorIndex].weedInfestation}</td>
+            )
+
+            state.columns[5].show && sectionColumns.push(weedInfestationCell)
 
             return (
               <tr
                 key={sectionIndex}
               >
                 {sectionColumns}
-                {state.chemicals.map((chemical, chemicalIndex) => {
+                {state.chemicals.map(chemical => {
                   if(chemical.selected) {
                     const chemicalColumns = []
                     const chemicalData = section.data.chemicals.find(c => {
@@ -373,11 +395,12 @@ class App extends Component {
         </Navbar>
         <Panel>
           <Panel.Body>
-            {/*<div
-              id='map'
-              className='map'
-              ref='olmap'
-            ></div>*/}
+            <div
+              style={{width: 800, height: 450, margin: '0 auto'}}
+              id="map"
+              className="map"
+              ref="olmap"
+            ></div>
             {control}
             {dataTable}
           </Panel.Body>
