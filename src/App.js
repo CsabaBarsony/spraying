@@ -12,6 +12,7 @@ import {
   Col,
   Table,
   Label,
+  Button,
 } from 'react-bootstrap'
 import _ from 'lodash'
 
@@ -124,17 +125,70 @@ class App extends Component {
 
   componentDidMount() {
     api.getSectionData().then(sectionData => {
+      const vectorSource = new ol.source.Vector({})
+
+      sectionData.forEach((section, index) => {
+        const iconFeature = new ol.Feature({
+          geometry: new ol.geom.Point(ol.proj.fromLonLat([section.position.lon, section.position.lat])),
+          name: 'Section ' + (index + 1),
+        })
+
+        vectorSource.addFeature(iconFeature)
+      })
+
+      const iconStyle = new ol.style.Style({
+        image: new ol.style.Icon(({
+          anchor: [0.5, 46],
+          anchorXUnits: 'fraction',
+          anchorYUnits: 'pixels',
+          opacity: 0.75,
+          // element: document.createElement('button'),
+          src: 'http://openlayers.org/en/v3.9.0/examples/data/icon.png',
+        })),
+      })
+
+      const vectorLayer = new ol.layer.Vector({
+        source: vectorSource,
+        style: iconStyle,
+      })
+
       const map = new ol.Map({
         layers: [
           new ol.layer.Tile({
             source: new ol.source.OSM()
-          })
+          }),
+          vectorLayer,
         ],
         target: 'map',
         view: new ol.View({
           center: [0, 0],
           zoom: 2
         })
+      })
+
+      map.on('pointermove', e => {
+        const hit = map.forEachFeatureAtPixel(e.pixel, () => true)
+
+        map.getTargetElement().style.cursor = hit ? 'pointer' : ''
+      })
+
+      map.on('click', e => {
+        const feature = map.forEachFeatureAtPixel(e.pixel, feature => feature)
+
+        if(feature) {
+          const element = document.createElement('div')
+          element.innerHTML = '<span style="background: red">majom vagy</span>'
+
+          const popup = new ol.Overlay({
+            element,
+          })
+
+          map.addOverlay(popup)
+
+          const geometry = feature.getGeometry()
+          const position = geometry.getCoordinates()
+          popup.setPosition(position)
+        }
       })
 
       const sections = sectionData.map(data => ({
@@ -221,7 +275,12 @@ class App extends Component {
               <td key={'section' + sectionIndex + 'position'}>
                 <a
                   href="#"
-                  onClick={e => e.preventDefault()}
+                  onClick={e => {
+                    e.preventDefault()
+                    state.map.getView().setCenter(ol.proj.fromLonLat([section.data.position.lon, section.data.position.lat]))
+                    state.map.getView().setZoom(18)
+                    this.mapNode.scrollIntoView()
+                  }}
                 >
                   {data.position.lat + ', ' + data.position.lon}
                 </a>
@@ -279,6 +338,12 @@ class App extends Component {
         expanded={state.isOptionsPanelOpened}
         onToggle={isOptionsPanelOpened => this.setState({isOptionsPanelOpened})}
       >
+        <Button
+          onClick={() => {
+            const bound = state.map.getLayers().getArray()[1].getSource().getExtent()
+            state.map.getView().fit(bound)
+          }}
+        >Zoom</Button>
         <Panel.Heading>
           <Panel.Title
             toggle
@@ -396,10 +461,10 @@ class App extends Component {
         <Panel>
           <Panel.Body>
             <div
-              style={{width: 800, height: 450, margin: '0 auto'}}
+              style={{width: '100%', height: 450, margin: '0 auto'}}
               id="map"
               className="map"
-              ref="olmap"
+              ref={node => this.mapNode = node}
             ></div>
             {control}
             {dataTable}
