@@ -99,6 +99,8 @@ data.map((row, index) => {
   sectionsData.push(rowData)
 })
 
+export const sections = sectionsData
+
 export const api = {
   getSectionData: () => {
     return new Promise(resolve => {

@@ -1,4 +1,9 @@
 import React, {Component} from 'react'
+import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
+import ReactDOM from 'react-dom'
+import {Provider} from 'react-redux'
+import {store} from './store'
 import update from 'immutability-helper'
 import * as ol from 'openlayers'
 import {
@@ -17,13 +22,18 @@ import {
 import _ from 'lodash'
 
 import {api} from './api'
+import {testAction} from './actions'
+import {Popup} from './Popup'
 
 const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? 'yes' : 'no'}</Label>
+
+const overlayElement = document.createElement('div')
 
 class App extends Component {
   state = {
     map: null,
     isOptionsPanelOpened: false,
+    clickedSectionId: null,
     sections: [],
     selectedSectorIndex: 10,
     sectors: [
@@ -98,26 +108,32 @@ class App extends Component {
     columns: [
       {
         label: 'Distance [m]',
+        labelWithoutUnit: 'Distance',
         show: true,
       },
       {
         label: 'Position',
+        labelWithoutUnit: 'Position',
         show: true,
       },
       {
         label: 'Sprayed',
+        labelWithoutUnit: 'Sprayed',
         show: true,
       },
       {
         label: 'Water [l]',
+        labelWithoutUnit: 'Water',
         show: true,
       },
       {
-        label: 'Water dosage [l/ha]',
+        label: 'Water dose [l/ha]',
+        labelWithoutUnit: 'Water dose',
         show: true,
       },
       {
         label: 'Weed infestation [%]',
+        labelWithoutUnit: 'Weed infestation',
         show: true,
       },
     ],
@@ -131,6 +147,7 @@ class App extends Component {
         const iconFeature = new ol.Feature({
           geometry: new ol.geom.Point(ol.proj.fromLonLat([section.position.lon, section.position.lat])),
           name: 'Section ' + (index + 1),
+          sectionId: section.id,
         })
 
         vectorSource.addFeature(iconFeature)
@@ -142,7 +159,6 @@ class App extends Component {
           anchorXUnits: 'fraction',
           anchorYUnits: 'pixels',
           opacity: 0.75,
-          // element: document.createElement('button'),
           src: 'http://openlayers.org/en/v3.9.0/examples/data/icon.png',
         })),
       })
@@ -166,6 +182,21 @@ class App extends Component {
         })
       })
 
+      overlayElement.setAttribute('id', 'popupComponent')
+      const popupOverlay = new ol.Overlay(
+        {
+          element: overlayElement,
+          stopEvent: false,
+        })
+
+      map.addOverlay(popupOverlay)
+
+      ReactDOM.render(
+        <Provider store={store}>
+          <Popup/>
+        </Provider>,
+        overlayElement)
+
       map.on('pointermove', e => {
         const hit = map.forEachFeatureAtPixel(e.pixel, () => true)
 
@@ -176,18 +207,10 @@ class App extends Component {
         const feature = map.forEachFeatureAtPixel(e.pixel, feature => feature)
 
         if(feature) {
-          const element = document.createElement('div')
-          element.innerHTML = '<span style="background: red">majom vagy</span>'
-
-          const popup = new ol.Overlay({
-            element,
-          })
-
-          map.addOverlay(popup)
-
           const geometry = feature.getGeometry()
           const position = geometry.getCoordinates()
-          popup.setPosition(position)
+          popupOverlay.setPosition(position)
+          this.props.testAction(feature.get('sectionId'))
         }
       })
 
@@ -198,11 +221,23 @@ class App extends Component {
 
       sections[0].checked = true
 
+      const bound = map.getLayers().getArray()[1].getSource().getExtent()
+      map.getView().fit(bound)
+
       this.setState({
         sections,
         map,
       })
     })
+  }
+
+  componentDidUpdate() {
+    if(this.props.popupIsOpened) {
+      overlayElement.setAttribute('style', 'display:block')
+    }
+    else {
+      overlayElement.setAttribute('style', 'display:none')
+    }
   }
 
   render() {
@@ -255,7 +290,7 @@ class App extends Component {
                 columnHeaders.push(<th key={chemical.name + '2'}>Sector {state.selectedSectorIndex + 1} Quantity [l]</th>)
               }
 
-              columnHeaders.push(<th key={chemical.name + '3'}>Dosage [l/ha]</th>)
+              columnHeaders.push(<th key={chemical.name + '3'}>Dose [l/ha]</th>)
               columnHeaders.push(<th key={chemical.name + '4'}>Left nozzle majority</th>)
               columnHeaders.push(<th key={chemical.name + '5'}>Right nozzle majority</th>)
 
@@ -289,7 +324,7 @@ class App extends Component {
 
             state.columns[2].show && sectionColumns.push(<td key={'section' + sectionIndex + 'sprayed'}>{boolLabel(data.sprayed)}</td>)
             state.columns[3].show && sectionColumns.push(<td key={'section' + sectionIndex + 'water'}>{data.water}</td>)
-            state.columns[4].show && sectionColumns.push(<td key={'section' + sectionIndex + 'waterDosage'}>{data.waterDosage}</td>)
+            state.columns[4].show && sectionColumns.push(<td key={'section' + sectionIndex + 'waterDose'}>{data.waterDosage}</td>)
 
             const weedInfestationCell = state.selectedSectorIndex === 10 ? (
               <td key={'section' + sectionIndex + 'weedInfestation'}>{data.weedInfestation}</td>
@@ -338,12 +373,6 @@ class App extends Component {
         expanded={state.isOptionsPanelOpened}
         onToggle={isOptionsPanelOpened => this.setState({isOptionsPanelOpened})}
       >
-        <Button
-          onClick={() => {
-            const bound = state.map.getLayers().getArray()[1].getSource().getExtent()
-            state.map.getView().fit(bound)
-          }}
-        >Zoom</Button>
         <Panel.Heading>
           <Panel.Title
             toggle
@@ -437,7 +466,7 @@ class App extends Component {
                         checked={column.show}
                         onChange={() => {}}
                       >
-                        {column.label}
+                        {column.labelWithoutUnit}
                       </Checkbox>
                     ))}
                   </FormGroup>
@@ -454,25 +483,50 @@ class App extends Component {
         <Navbar>
           <Navbar.Header>
             <Navbar.Brand>
-              <a href="#home">Spraying</a>
+              <a href="#home">G&G | Spraying</a>
             </Navbar.Brand>
           </Navbar.Header>
         </Navbar>
-        <Panel>
-          <Panel.Body>
-            <div
-              style={{width: '100%', height: 450, margin: '0 auto'}}
-              id="map"
-              className="map"
-              ref={node => this.mapNode = node}
-            ></div>
-            {control}
-            {dataTable}
-          </Panel.Body>
-        </Panel>
+        <div
+          style={{paddingLeft: 10, paddingRight: 10}}
+        >
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: 450,
+              margin: '0 auto',
+              marginBottom: 20,
+            }}
+            id="map"
+            className="map"
+            ref={node => this.mapNode = node}
+          >
+            <Button
+              style={{
+                position: 'absolute',
+                zIndex: 1,
+                top: 10,
+                left: 10,
+              }}
+              onClick={() => {
+                const bound = state.map.getLayers().getArray()[1].getSource().getExtent()
+                state.map.getView().fit(bound)
+              }}
+            >Fit to map</Button>
+          </div>
+          {control}
+          {dataTable}
+        </div>
       </div>
     )
   }
 }
-
-export default App
+export default connect(
+  state => ({
+    popupIsOpened: state.popupIsOpened,
+  }),
+  dispatch => bindActionCreators({
+    testAction,
+  }, dispatch),
+)(App)
