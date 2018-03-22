@@ -1,13 +1,8 @@
 import React, {Component} from 'react'
-import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
-import ReactDOM from 'react-dom'
-import {Provider} from 'react-redux'
-import {store} from './store'
-import update from 'immutability-helper'
+import {connect, Provider} from 'react-redux'
 import * as ol from 'openlayers'
+import update from 'immutability-helper'
 import {
-  Navbar,
   Panel,
   FormGroup,
   Checkbox,
@@ -20,16 +15,18 @@ import {
   Button,
 } from 'react-bootstrap'
 import _ from 'lodash'
+import ReactDOM from 'react-dom'
+import {bindActionCreators} from 'redux'
 
-import {api} from './api'
-import {testAction} from './actions'
-import {Popup} from './Popup'
+import {store} from 'store'
+import {Popup} from 'spraying/components/Popup'
+import {selectSection} from 'actions'
+import {api} from 'api'
 
 const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? 'yes' : 'no'}</Label>
-
 const overlayElement = document.createElement('div')
 
-class App extends Component {
+export class SprayingPageComponent extends Component {
   state = {
     map: null,
     isOptionsPanelOpened: false,
@@ -210,7 +207,7 @@ class App extends Component {
           const geometry = feature.getGeometry()
           const position = geometry.getCoordinates()
           popupOverlay.setPosition(position)
-          this.props.testAction(feature.get('sectionId'))
+          this.props.selectSection(feature.get('sectionId'))
         }
       })
 
@@ -254,116 +251,116 @@ class App extends Component {
     const dataTable = (
       <Table striped bordered condensed hover>
         <thead>
-          <tr>
-            {getColumnsLength() > 0 && <th colSpan={getColumnsLength()}>Section data</th>}
-            {state.chemicals.map((chemical, index) => chemical.selected ? <th key={index} colSpan="4">Chemical: {chemical.name}</th> : null)}
-          </tr>
-          <tr>
-            {state.columns.map((column, index) => {
-              if(column.show) {
-                if(index === 5 && state.selectedSectorIndex !== 10) {
-                  return (
-                    <th
-                      key={index}
-                    >Sector {state.selectedSectorIndex + 1} {column.label}</th>
-                  )
-                }
-                else {
-                  return (
-                    <th
-                      key={index}
-                    >{column.label}</th>
-                  )
-                }
-              }
-              else return null
-            })}
-            {state.chemicals.map(chemical => {
-              if(!chemical.selected) return null
-
-              const columnHeaders = []
-
-              if(state.selectedSectorIndex === 10) {
-                columnHeaders.push(<th key={chemical.name + '1'}>Quantity [l]</th>)
+        <tr>
+          {getColumnsLength() > 0 && <th colSpan={getColumnsLength()}>Section data</th>}
+          {state.chemicals.map((chemical, index) => chemical.selected ? <th key={index} colSpan="4">Chemical: {chemical.name}</th> : null)}
+        </tr>
+        <tr>
+          {state.columns.map((column, index) => {
+            if(column.show) {
+              if(index === 5 && state.selectedSectorIndex !== 10) {
+                return (
+                  <th
+                    key={index}
+                  >Sector {state.selectedSectorIndex + 1} {column.label}</th>
+                )
               }
               else {
-                columnHeaders.push(<th key={chemical.name + '2'}>Sector {state.selectedSectorIndex + 1} Quantity [l]</th>)
+                return (
+                  <th
+                    key={index}
+                  >{column.label}</th>
+                )
               }
+            }
+            else return null
+          })}
+          {state.chemicals.map(chemical => {
+            if(!chemical.selected) return null
 
-              columnHeaders.push(<th key={chemical.name + '3'}>Dose [l/ha]</th>)
-              columnHeaders.push(<th key={chemical.name + '4'}>Left nozzle majority</th>)
-              columnHeaders.push(<th key={chemical.name + '5'}>Right nozzle majority</th>)
+            const columnHeaders = []
 
-              return columnHeaders
-            })}
-          </tr>
+            if(state.selectedSectorIndex === 10) {
+              columnHeaders.push(<th key={chemical.name + '1'}>Quantity [l]</th>)
+            }
+            else {
+              columnHeaders.push(<th key={chemical.name + '2'}>Sector {state.selectedSectorIndex + 1} Quantity [l]</th>)
+            }
+
+            columnHeaders.push(<th key={chemical.name + '3'}>Dose [l/ha]</th>)
+            columnHeaders.push(<th key={chemical.name + '4'}>Left nozzle majority</th>)
+            columnHeaders.push(<th key={chemical.name + '5'}>Right nozzle majority</th>)
+
+            return columnHeaders
+          })}
+        </tr>
         </thead>
         <tbody>
-          {state.sections.map((section, sectionIndex) => {
-            const data = section.data
+        {state.sections.map((section, sectionIndex) => {
+          const data = section.data
 
-            const sectionColumns = []
+          const sectionColumns = []
 
-            state.columns[0].show && sectionColumns.push(<td key={'section' + sectionIndex + 'distance'}>{data.distance}</td>)
+          state.columns[0].show && sectionColumns.push(<td key={'section' + sectionIndex + 'distance'}>{data.distance}</td>)
 
-            state.columns[1].show && sectionColumns.push(
-              <td key={'section' + sectionIndex + 'position'}>
-                <a
-                  href="#"
-                  onClick={e => {
-                    e.preventDefault()
-                    state.map.getView().setCenter(ol.proj.fromLonLat([section.data.position.lon, section.data.position.lat]))
-                    state.map.getView().setZoom(18)
-                    this.mapNode.scrollIntoView()
-                  }}
-                >
-                  {data.position.lat + ', ' + data.position.lon}
-                </a>
-              </td>
-            )
-
-            state.columns[2].show && sectionColumns.push(<td key={'section' + sectionIndex + 'sprayed'}>{boolLabel(data.sprayed)}</td>)
-            state.columns[3].show && sectionColumns.push(<td key={'section' + sectionIndex + 'water'}>{data.water}</td>)
-            state.columns[4].show && sectionColumns.push(<td key={'section' + sectionIndex + 'waterDose'}>{data.waterDosage}</td>)
-
-            const weedInfestationCell = state.selectedSectorIndex === 10 ? (
-              <td key={'section' + sectionIndex + 'weedInfestation'}>{data.weedInfestation}</td>
-            ) : (
-              <td key={'section' + sectionIndex + 'weedInfestation'}>{data.sectors[state.selectedSectorIndex].weedInfestation}</td>
-            )
-
-            state.columns[5].show && sectionColumns.push(weedInfestationCell)
-
-            return (
-              <tr
-                key={sectionIndex}
+          state.columns[1].show && sectionColumns.push(
+            <td key={'section' + sectionIndex + 'position'}>
+              <a
+                href="#map"
+                onClick={e => {
+                  e.preventDefault()
+                  state.map.getView().setCenter(ol.proj.fromLonLat([section.data.position.lon, section.data.position.lat]))
+                  state.map.getView().setZoom(18)
+                  this.mapNode.scrollIntoView()
+                }}
               >
-                {sectionColumns}
-                {state.chemicals.map(chemical => {
-                  if(chemical.selected) {
-                    const chemicalColumns = []
-                    const chemicalData = section.data.chemicals.find(c => {
-                      return c.id === chemical.id
-                    })
+                {data.position.lat + ', ' + data.position.lon}
+              </a>
+            </td>
+          )
 
-                    if(state.selectedSectorIndex === 10) {
-                      chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '1'}>{chemicalData.dosage}</td>)
-                    }
-                    else {
-                      chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '1'}>{chemicalData.sectors[state.selectedSectorIndex].dosage}</td>)
-                    }
+          state.columns[2].show && sectionColumns.push(<td key={'section' + sectionIndex + 'sprayed'}>{boolLabel(data.sprayed)}</td>)
+          state.columns[3].show && sectionColumns.push(<td key={'section' + sectionIndex + 'water'}>{data.water}</td>)
+          state.columns[4].show && sectionColumns.push(<td key={'section' + sectionIndex + 'waterDose'}>{data.waterDosage}</td>)
 
-                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '2'}>{chemicalData.dosage}</td>)
-                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '3'}>{boolLabel(chemicalData.leftNozzleMajority)}</td>)
-                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '4'}>{boolLabel(chemicalData.rightNozzleMajority)}</td>)
+          const weedInfestationCell = state.selectedSectorIndex === 10 ? (
+            <td key={'section' + sectionIndex + 'weedInfestation'}>{data.weedInfestation}</td>
+          ) : (
+            <td key={'section' + sectionIndex + 'weedInfestation'}>{data.sectors[state.selectedSectorIndex].weedInfestation}</td>
+          )
 
-                    return chemicalColumns
+          state.columns[5].show && sectionColumns.push(weedInfestationCell)
+
+          return (
+            <tr
+              key={sectionIndex}
+            >
+              {sectionColumns}
+              {state.chemicals.map(chemical => {
+                if(chemical.selected) {
+                  const chemicalColumns = []
+                  const chemicalData = section.data.chemicals.find(c => {
+                    return c.id === chemical.id
+                  })
+
+                  if(state.selectedSectorIndex === 10) {
+                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '1'}>{chemicalData.dosage}</td>)
                   }
-                  else return null
-                })}
-              </tr>
-            )
-          })}
+                  else {
+                    chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '1'}>{chemicalData.sectors[state.selectedSectorIndex].dosage}</td>)
+                  }
+
+                  chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '2'}>{chemicalData.dosage}</td>)
+                  chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '3'}>{boolLabel(chemicalData.leftNozzleMajority)}</td>)
+                  chemicalColumns.push(<td key={'section' + sectionIndex + chemical.name + '4'}>{boolLabel(chemicalData.rightNozzleMajority)}</td>)
+
+                  return chemicalColumns
+                }
+                else return null
+              })}
+            </tr>
+          )
+        })}
         </tbody>
       </Table>
     )
@@ -480,53 +477,43 @@ class App extends Component {
 
     return (
       <div>
-        <Navbar>
-          <Navbar.Header>
-            <Navbar.Brand>
-              <a href="#home">G&G | Spraying</a>
-            </Navbar.Brand>
-          </Navbar.Header>
-        </Navbar>
         <div
-          style={{paddingLeft: 10, paddingRight: 10}}
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: 450,
+            margin: '0 auto',
+            marginBottom: 20,
+          }}
+          id="map"
+          className="map"
+          ref={node => this.mapNode = node}
         >
-          <div
+          <Button
             style={{
-              position: 'relative',
-              width: '100%',
-              height: 450,
-              margin: '0 auto',
-              marginBottom: 20,
+              position: 'absolute',
+              zIndex: 1,
+              top: 10,
+              left: 10,
             }}
-            id="map"
-            className="map"
-            ref={node => this.mapNode = node}
-          >
-            <Button
-              style={{
-                position: 'absolute',
-                zIndex: 1,
-                top: 10,
-                left: 10,
-              }}
-              onClick={() => {
-                const bound = state.map.getLayers().getArray()[1].getSource().getExtent()
-                state.map.getView().fit(bound)
-              }}
-            >Fit to map</Button>
-          </div>
-          {control}
-          {dataTable}
+            onClick={() => {
+              const bound = state.map.getLayers().getArray()[1].getSource().getExtent()
+              state.map.getView().fit(bound)
+            }}
+          >Fit to map</Button>
         </div>
+        {control}
+        {dataTable}
       </div>
     )
   }
 }
-export default connect(
+
+export const SprayingPage = connect(
   state => ({
     popupIsOpened: state.popupIsOpened,
   }),
   dispatch => bindActionCreators({
-    testAction,
+    selectSection,
   }, dispatch),
-)(App)
+)(SprayingPageComponent)

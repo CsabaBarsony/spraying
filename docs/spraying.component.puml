@@ -1,0 +1,45 @@
+@startuml
+
+title Spraying
+
+class ReduxStore << (R,#A11111) >> {
+}
+
+class App {
+}
+
+class Map {
+}
+
+class Table {
+    --
+    --
+    sectorData:[SectorItem]
+    tableSettings:[TableSettings]
+}
+
+class TableSettings {
+    selectedSectorIndex
+    chemicals
+    columns
+    --
+    selectSectorIndex()
+    changeChemicalSelection()
+    changeColumnSelection()
+}
+
+class TableData {
+    sectorData:[SectorItem]
+    tableSettings:[TableSettings]
+}
+
+App -- Map
+App -- Table
+
+Table -- TableSettings
+Table -- TableData
+
+ReduxStore - Table
+ReduxStore - Map
+
+@enduml

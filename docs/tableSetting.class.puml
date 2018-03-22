@@ -1,0 +1,46 @@
+@startuml
+
+enum SectorName {
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+}
+
+enum ChemicalName {
+    KYLEO
+    PANIC_FREE
+    VIVAL
+    GENOXONE
+}
+
+class Sector {
+    id:number
+    name:SectorName
+}
+
+class Chemical {
+    id:number
+    name:ChemicalName
+}
+
+class TableSetting {
+    distance:bool
+    position:bool
+    sprayed:bool
+    water:bool
+    waterDosage:bool
+    weedInfestation:bool
+    chemicals:[Chemical]
+    sector:Sector
+}
+
+TableSetting o-- Chemical
+TableSetting o-- Sector
+
+@enduml

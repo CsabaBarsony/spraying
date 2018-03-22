@@ -1,7 +1,8 @@
 import {createStore} from 'redux'
 import update from 'immutability-helper'
 
-import {sections} from './api'
+import {sections} from 'api'
+import {actions} from 'actions'
 
 const initialState = {
   sections,
@@ -11,7 +12,7 @@ const initialState = {
 
 function reducer(state = initialState, action) {
   switch(action.type) {
-    case 'selectSection':
+    case actions.selectSection:
       const selectedSection = sections.find(section => section.id === action.sectionId)
 
       return update(state, {
@@ -22,7 +23,7 @@ function reducer(state = initialState, action) {
           $set: true,
         },
       })
-    case 'closePopup':
+    case actions.closePopup:
       return update(state, {
         popupIsOpened: {
           $set: false,

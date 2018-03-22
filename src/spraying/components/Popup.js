@@ -1,9 +1,9 @@
 import React from 'react'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {Button} from 'react-bootstrap'
+import {Button, Glyphicon} from 'react-bootstrap'
 
-import {closePopup} from './actions'
+import {closePopup} from 'actions'
 
 const popupComponent = props => {
   return props.popupIsOpened ? (
@@ -18,7 +18,9 @@ const popupComponent = props => {
         bsSize="xsmall"
         onClick={props.closePopup}
         style={{float: 'right'}}
-      >X</Button>
+      >
+        <Glyphicon glyph="remove"/>
+      </Button>
       <div>Belgium Second campaign 2017</div>
       <div>Charleroi-Sud - Brussels-Zuid</div>
       <div>2017.09.14. 9:56:29-2017.09.14. 11:05:56</div>
