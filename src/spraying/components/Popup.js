@@ -62,8 +62,8 @@ const popupComponent = props => {
 
 export const Popup = connect(
   state => ({
-    selectedSection: state.selectedSection,
-    popupIsOpened: state.popupIsOpened,
+    selectedSection: state.spraying.selectedSection,
+    popupIsOpened: state.spraying.popupIsOpened,
   }),
   dispatch => bindActionCreators({
     closePopup,

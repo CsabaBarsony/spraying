@@ -1,41 +1,28 @@
-import update from 'immutability-helper'
-import {authActions} from 'auth/auth.actions'
+import {onEntry, states} from 'statechart'
 
 const initialState = {
   isAuthenticated: false,
   isUser: false,
   username: '',
+  message: '',
 }
 
 export const authReducer = (state = initialState, action) => {
-  console.log(action)
   switch(action.type) {
-    case authActions.authenticate.success:
-      return update(state, {
-        username: {
-          $set: action.username,
-        },
-      })
+    case onEntry(states.MEMBER):
+      return {
+        isAuthenticated: true,
+        isUser: true,
+        username: action.username,
+      }
 
-    case authActions.enter.user:
-      return update(state, {
-        isAuthenticated: {
-          $set: true,
-        },
-        isUser: {
-          $set: true,
-        },
-      })
-
-    case authActions.enter.guest:
-      return update(state, {
-        isAuthenticated: {
-          $set: true,
-        },
-        isUser: {
-          $set: false,
-        },
-      })
+    case onEntry(states.GUEST):
+      return {
+        isAuthenticated: true,
+        isUser: false,
+        username: '',
+        message: action.message,
+      }
 
     default:
       return state

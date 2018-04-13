@@ -1,0 +1,14 @@
+@startuml
+[*] --> Stranger
+Stranger --> Guest : authenticationFail
+Stranger --> Member : authenticationSuccess
+
+Guest --> LoggingIn : loginRequest
+Guest : in: username
+Guest : in: token
+
+Member --> Guest : logout
+
+LoggingIn --> Guest : loginFail
+LoggingIn --> Member : loginSuccess
+@enduml

@@ -2,9 +2,9 @@ import React from 'react'
 import {NavDropdown, MenuItem, NavItem} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
 
-export const UserInfo = props => props.isAuthenticated ? (
+export const UserInfo = props => props.isUser ? (
   <NavDropdown
-    id="UserInfo-NavDropdown"
+    id="auth-UserInfo-NavDropdown"
     title={props.username}
   >
     <MenuItem

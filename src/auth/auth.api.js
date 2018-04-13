@@ -1,14 +1,27 @@
 import {store} from 'store'
 import {authActions} from 'auth/auth.actions'
+import {events} from 'statechart'
 
 export const authApi = {
   authenticate: () => {
-    setTimeout(() => {
-      store.dispatch({
-        type: authActions.authenticate.success,
-        username: 'Test user',
-      })
-    }, 300)
+    const token = localStorage.getItem('token')
+
+    if(token) {
+      setTimeout(() => {
+        store.dispatch({
+          type: events.AUTHENTICATION_SUCCESS,
+          username: 'Test user',
+          token: 'sample_token',
+        })
+      }, 500)
+    }
+    else {
+      setTimeout(() => {
+        store.dispatch({
+          type: events.AUTHENTICATION_FAIL,
+        })
+      }, 500)
+    }
   },
   login: (username, password) => {
     setTimeout(() => {

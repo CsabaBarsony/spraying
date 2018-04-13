@@ -22,6 +22,8 @@ import {store} from 'store'
 import {Popup} from 'spraying/components/Popup'
 import {selectSection} from 'actions'
 import {api} from 'api'
+import {i18n} from 'app/utils/i18n'
+import {locales} from 'app/utils/locales'
 
 const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? 'yes' : 'no'}</Label>
 const overlayElement = document.createElement('div')
@@ -136,7 +138,12 @@ export class SprayingPageComponent extends Component {
     ],
   }
 
+  componentWillUnmount() {
+    console.log('spray will unmount')
+  }
+
   componentDidMount() {
+    console.log('spray did mount')
     api.getSectionData().then(sectionData => {
       const vectorSource = new ol.source.Vector({})
 
@@ -502,6 +509,7 @@ export class SprayingPageComponent extends Component {
             }}
           >Fit to map</Button>
         </div>
+        {i18n.translate(locales.CANCEL)}
         {control}
         {dataTable}
       </div>
@@ -511,7 +519,7 @@ export class SprayingPageComponent extends Component {
 
 export const SprayingPage = connect(
   state => ({
-    popupIsOpened: state.popupIsOpened,
+    popupIsOpened: state.spraying.popupIsOpened,
   }),
   dispatch => bindActionCreators({
     selectSection,

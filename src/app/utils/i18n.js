@@ -1,5 +1,4 @@
 import {store} from 'store'
-import {locales} from 'app/utils/locales'
 
 export const i18n = {
   /**
@@ -10,7 +9,7 @@ export const i18n = {
   translate: (key, isFirstLetterCapital = true) => {
     const locale = store.getState().app.locale
 
-    const resultStringLowerCase = locales[key][locale]
+    const resultStringLowerCase = key[locale] || key['en']
 
     if(isFirstLetterCapital) {
       return resultStringLowerCase.charAt(0).toUpperCase() + resultStringLowerCase.slice(1)

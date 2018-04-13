@@ -1,37 +1,68 @@
 import {createStore, applyMiddleware} from 'redux'
+// import {Statechart} from 'scion-core'
 
+import {Statechart} from 'app/utils/scion'
 import {reducer} from 'reducer'
-import {machine, UPDATE} from 'machine'
+import {statechart} from 'statechart'
+import {api} from 'api'
 
-export const statechartMiddleware = store => next => action => {
-  const state = store.getState()
-  const currentStatechart = state.statechart // this has to match the location where you mount your reducer
+let sc
 
-  const nextMachine = machine.transition(currentStatechart, action)
+setTimeout(() => {
+  sc = new Statechart({states: statechart})
 
-  const result = next(action)
-
-  // run actions
-  nextMachine.actions.forEach(actionType => {
-    store.dispatch({ type: actionType, payload: action.payload })
+  sc.on('onEntry', (state, event = {}) => {
+    const action = {...event}
+    action.type = 'a:entry:' + state
+    console.log('entry', state, action)
+    store.dispatch(action)
   })
 
-  // save current statechart
-  if (nextMachine && action.type !== UPDATE) {
-    if (nextMachine.history !== undefined) {
-      // if there's a history, it means a transition happened
-      store.dispatch({ type: UPDATE, payload: nextMachine.value })
-    }
-  }
+  sc.on('onExit', (state, event = {}) => {
+    const action = {...event}
+    action.type = 'a:exit:' + state
+    console.log('exit', state, action)
+    store.dispatch(action)
+  })
 
-  return result
+  sc.on('onTransition', (state, targetIds, stxIdx, event) => {
+    if(event && event.type) {
+      const action = {...event}
+      action.type = 'a:transition:' + event.type
+      console.log('transition', action)
+      store.dispatch(action)
+    }
+  })
+
+  sc.start()
+}, 0)
+
+const apiMiddleware = store => next => action => {
+  api(action)
+  next(action)
+}
+
+const statechartMiddleware = store => next => action => {
+  if(!action.type.startsWith('a:')) {
+    sc.gen({
+      name: action.type,
+      data: action,
+    })
+  }
+  else {
+    next(action)
+  }
+}
+
+const logMiddleware = store => next => action => {
+  // console.log(action.type.startsWith('e:') ? 'event' : 'action', action)
+  next(action)
 }
 
 export const store = createStore(
   reducer,
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
-  applyMiddleware(statechartMiddleware),
+  applyMiddleware(logMiddleware, statechartMiddleware, apiMiddleware),
 )
 
-machine.initialState.actions.forEach(actionType =>
-  store.dispatch({ type: actionType }))
+export const {dispatch} = store

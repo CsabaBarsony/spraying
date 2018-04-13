@@ -2,60 +2,77 @@ import React, {Component} from 'react'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {Nav, Navbar} from 'react-bootstrap'
-import {BrowserRouter as Router, Route, Link, Redirect, Switch} from 'react-router-dom'
+import {BrowserRouter as Router, Route, Redirect, Link} from 'react-router-dom'
 
-// import {SprayingPage} from 'spraying/components/SprayingPage'
-import {HomePage} from 'home/components/HomePage'
-import {AuthRoute} from 'auth/components/AuthRoute'
-import {LoginPage} from 'auth/components/LoginPage'
 import {UserInfo} from 'auth/components/UserInfo'
-import {login, logout} from 'actions'
-import {authApi} from 'auth/auth.api'
+import {Navigation} from 'app/components/Navigation'
+import {LocaleSwitch} from 'app/components/LocaleSwitch/LocaleSwitch'
+import {changeLocale} from 'app/app.actions'
+import {routes} from 'routes'
+import {LoginPage} from 'auth/components/LoginPage'
+import {HomePage} from 'home/components/HomePage'
+import {SprayingPage} from 'spraying/components/SprayingPage'
 
 class AppComponent extends Component {
-  componentDidMount() {
-    authApi.authenticate()
-  }
-
   render() {
+    const props = this.props
+
+    const nav = (
+      <Navbar>
+        <Navbar.Header>
+          <Navbar.Brand>
+            <Link to="/home">G&G | Spraying</Link>
+          </Navbar.Brand>
+        </Navbar.Header>
+        <Nav>
+          <Navigation
+            routes={routes}
+            isUser={props.auth.isUser}
+          />
+        </Nav>
+        <Nav
+          pullRight
+        >
+          <LocaleSwitch
+            locale={props.app.locale}
+            changeLocale={props.changeLocale}
+          />
+          <UserInfo
+            isUser={props.auth.isUser}
+            username={props.auth.username}
+            logout={props.logout}
+          />
+        </Nav>
+      </Navbar>
+    )
+
+    if(!props.auth.isAuthenticated) return <div>authenticating, please wait...</div>
+
     return (
       <Router>
         <div>
-          <Navbar>
-            <Navbar.Header>
-              <Navbar.Brand>
-                <Link to="/home">G&G | Spraying</Link>
-              </Navbar.Brand>
-            </Navbar.Header>
-            <Nav>
-              <UserInfo
-                isAuthenticated={this.props.auth.isAuthenticated}
-                username={this.props.auth.username}
-                logout={this.props.logout}
+          {nav}
+          <Route
+            path="/"
+            render={({location: {pathname}}) => !props.auth.isUser && pathname !== '/login' && (
+              <Redirect
+                to="/login"
               />
-            </Nav>
-          </Navbar>
-          <div
-            style={{paddingLeft: 10, paddingRight: 10}}
-          >
-            <button
-              onClick={this.props.test}
-            >app_start</button>
-            {/*<SprayingPage/>*/}
-            <Route path="/login" render={props => (
-              <LoginPage
-                login={this.props.login}
-                redirectToReferrer={this.props.auth.redirectToReferrer}
-                {...props}
-              />
-            )}/>
-            <Route path="/home" component={HomePage}/>
-            <AuthRoute path="/spraying" component={() => <div>spraying</div>}/>
-            <Switch>
-              <Redirect from="/" to="/home" exact/>
-            </Switch>
-            {/*<AuthRoute path="/abc" component={() => <div>abc</div>} />*/}
-          </div>
+            )}
+          />
+          <Route
+            exact
+            path="/login"
+            component={LoginPage}
+          />
+          <Route
+            path="/home"
+            component={HomePage}
+          />
+          <Route
+            path="/spraying"
+            component={SprayingPage}
+          />
         </div>
       </Router>
     )
@@ -64,11 +81,10 @@ class AppComponent extends Component {
 
 export const App = connect(
   state => ({
+    app: state.app,
     auth: state.auth,
   }),
   dispatch => bindActionCreators({
-    login,
-    logout,
-    test: () => ({type: 'test'}),
+    changeLocale,
   }, dispatch),
 )(AppComponent)
