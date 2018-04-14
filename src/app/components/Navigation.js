@@ -8,7 +8,7 @@ export const Navigation = props => (
     id="auth-Navigation-NavDropdown"
     title="Pages"
   >
-    {props.routes.map((route, index) => route.isAuthenticated && !props.isUser ? null : (
+    {props.routes.map((route, index) => !props.isUser ? null : (
         <LinkContainer
           key={index}
           to={route.path}
@@ -21,7 +21,6 @@ export const Navigation = props => (
 )
 
 Navigation.propTypes = {
-  isUser: bool.isRequired,
   routes: arrayOf(shape({
     path: string.isRequired,
     title: string.isRequired,

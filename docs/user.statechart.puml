@@ -1,13 +1,14 @@
 @startuml
 [*] --> Stranger
 Stranger --> Guest : authenticationFail
-Stranger --> Member : authenticationSuccess
+Stranger --> Member : authenticationSuccess \n t:username[string]
+Stranger : o:isStranger[bool]
 
 Guest --> LoggingIn : loginRequest
-Guest : in: username
-Guest : in: token
+Guest : i:isMember[bool]
 
 Member --> Guest : logout
+Member : i:isMember[bool]
 
 LoggingIn --> Guest : loginFail
 LoggingIn --> Member : loginSuccess

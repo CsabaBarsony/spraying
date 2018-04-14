@@ -120,19 +120,13 @@ export const api = action => {
         }, 500)
       }
       else {
-        setTimeout(() => {
-          dispatch({
-            type: events.AUTHENTICATION.FAIL,
-          })
-        }, 500)
+        setTimeout(() => {dispatch({type: events.AUTHENTICATION.FAIL})}, 500)
       }
       break
 
     case onEntry(states.LOGGING_IN):
       if(action.username === 'asdf' && action.password === 'pass') {
-        dispatch({
-          type: events.LOGIN.SUCCESS,
-        })
+        dispatch({type: events.LOGIN.SUCCESS})
       }
       else {
         dispatch({

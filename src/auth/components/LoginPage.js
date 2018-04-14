@@ -33,18 +33,14 @@ class LoginPageComponent extends Component {
           />
         </FormGroup>
         <div>message: {props.message}</div>
-        <Button
-          onClick={() => props.login(state.username, state.password)}
-        >Login</Button>
+        <Button onClick={() => props.login(state.username, state.password)}>Login</Button>
       </form>
     )
   }
 }
 
 export const LoginPage = connect(
-  state => ({
-    message: state.auth.message,
-  }),
+  state => ({message: state.auth.message}),
   dispatch => ({
     login: (username, password) => dispatch({
       type: events.LOGIN.REQUEST,

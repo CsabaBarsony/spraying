@@ -16,6 +16,8 @@ import {SprayingPage} from 'spraying/components/SprayingPage'
 class AppComponent extends Component {
   render() {
     const props = this.props
+    console.log(!props.auth.isStranger && !props.auth.isGuest)
+    console.log(props.auth.isStranger, props.auth.isGuest)
 
     const nav = (
       <Navbar>
@@ -30,15 +32,13 @@ class AppComponent extends Component {
             isUser={props.auth.isUser}
           />
         </Nav>
-        <Nav
-          pullRight
-        >
+        <Nav pullRight>
           <LocaleSwitch
             locale={props.app.locale}
             changeLocale={props.changeLocale}
           />
           <UserInfo
-            isUser={props.auth.isUser}
+            isUser={!props.auth.isStranger && !props.auth.isGuest}
             username={props.auth.username}
             logout={props.logout}
           />
@@ -46,7 +46,7 @@ class AppComponent extends Component {
       </Navbar>
     )
 
-    if(!props.auth.isAuthenticated) return <div>authenticating, please wait...</div>
+    if(props.auth.isStranger) return <div>authenticating, please wait...</div>
 
     return (
       <Router>
@@ -54,19 +54,16 @@ class AppComponent extends Component {
           {nav}
           <Route
             path="/"
-            render={({location: {pathname}}) => !props.auth.isUser && pathname !== '/login' && (
-              <Redirect
-                to="/login"
-              />
-            )}
+            render={({location: {pathname}}) => props.auth.isGuest && pathname !== '/login' && <Redirect to="/login"/>}
           />
           <Route
             exact
             path="/login"
-            component={LoginPage}
+            render={() => props.auth.isGuest ? <LoginPage/> : <Redirect to="/"/>}
           />
           <Route
-            path="/home"
+            exact
+            path="/"
             component={HomePage}
           />
           <Route
@@ -84,7 +81,5 @@ export const App = connect(
     app: state.app,
     auth: state.auth,
   }),
-  dispatch => bindActionCreators({
-    changeLocale,
-  }, dispatch),
+  dispatch => bindActionCreators({changeLocale}, dispatch),
 )(AppComponent)
