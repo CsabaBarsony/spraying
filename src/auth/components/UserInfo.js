@@ -7,14 +7,10 @@ export const UserInfo = props => props.isUser ? (
     id="auth-UserInfo-NavDropdown"
     title={props.username}
   >
-    <MenuItem
-      onClick={props.logout}
-    >logout</MenuItem>
+    <MenuItem onClick={props.logout}>logout</MenuItem>
   </NavDropdown>
 ) : (
-  <LinkContainer
-    to="/login"
-  >
+  <LinkContainer to="/login">
     <NavItem>login</NavItem>
   </LinkContainer>
 )

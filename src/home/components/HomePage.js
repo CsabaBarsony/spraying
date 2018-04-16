@@ -1,3 +1,3 @@
 import React from 'react'
 
-export const HomePage = () => <div>home</div>
+export const HomePage = ({locale}) => <div>home {locale}</div>

@@ -19,10 +19,12 @@ const spirit = (statechart, opts) => {
 
     let lastEvent
 
-    /*sc.on('onBigStepBegin', e => console.log('big step begin'))
-    sc.on('onBigStepEnd', e => console.log('big step end'))
-    sc.on('onSmallStepBegin', e => console.log('small step begin'))
-    sc.on('onSmallStepEnd', e => console.log('small step end'))*/
+    if(options.log && options.verbose) {
+      sc.on('onBigStepBegin', () => console.log('big step begin'))
+      sc.on('onBigStepEnd', () => console.log('big step end'))
+      sc.on('onSmallStepBegin', e => console.log('small step begin', e))
+      sc.on('onSmallStepEnd', () => console.log('small step end'))
+    }
 
     sc.on('onSmallStepBegin', e => lastEvent = e ? e.data : undefined)
 
@@ -54,26 +56,23 @@ const spirit = (statechart, opts) => {
 
   return store => next => action => {
     if(!action.type.startsWith('a:')) {
+      if(options.log) console.log('action', action)
       sc.gen({
         name: action.type,
         data: action,
       })
     }
     else {
+      if(options.log) console.log('event', action)
       next(action)
     }
   }
 }
 
-const logMiddleware = store => next => action => {
-  // console.log(action)
-  next(action)
-}
-
 export const store = createStore(
   reducer,
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
-  applyMiddleware(logMiddleware, spirit(statechart, {log: true}), apiMiddleware),
+  applyMiddleware(spirit(statechart, {log: false}), apiMiddleware),
 )
 
 export const {dispatch} = store

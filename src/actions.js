@@ -8,7 +8,7 @@
   LOGOUT: 'LOGOUT',
 }*/
 
-export const actions = {
+/*export const actions = {
   entry: {
     STRANGER: 'entry/STRANGER',
     LOGGING_IN: 'entry/LOGGING_IN',
@@ -32,4 +32,4 @@ export const login = () => ({
 
 export const logout = () => ({
   type: actions.logout,
-})
+})*/

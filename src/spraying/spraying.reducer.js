@@ -1,6 +1,5 @@
-import update from 'immutability-helper'
+// import update from 'immutability-helper'
 
-import {actions} from 'actions'
 import {sections} from 'api'
 
 const initialState = {
@@ -11,7 +10,7 @@ const initialState = {
 
 export function sprayingReducer(state = initialState, action) {
   switch(action.type) {
-    case actions.selectSection:
+    /*case actions.selectSection:
       const selectedSection = sections.find(section => section.id === action.sectionId)
 
       return update(state, {
@@ -28,7 +27,7 @@ export function sprayingReducer(state = initialState, action) {
         popupIsOpened: {
           $set: false,
         },
-      })
+      })*/
 
     default:
       return state

@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {Nav, Navbar} from 'react-bootstrap'
 import {BrowserRouter as Router, Route, Redirect, Link} from 'react-router-dom'
@@ -7,17 +6,14 @@ import {BrowserRouter as Router, Route, Redirect, Link} from 'react-router-dom'
 import {UserInfo} from 'auth/components/UserInfo'
 import {Navigation} from 'app/components/Navigation'
 import {LocaleSwitch} from 'app/components/LocaleSwitch/LocaleSwitch'
-import {changeLocale} from 'app/app.actions'
-import {routes} from 'routes'
 import {LoginPage} from 'auth/components/LoginPage'
 import {HomePage} from 'home/components/HomePage'
 import {SprayingPage} from 'spraying/components/SprayingPage'
+import {authEvents} from 'auth/auth.statechart'
 
 class AppComponent extends Component {
   render() {
     const props = this.props
-    console.log(!props.auth.isStranger && !props.auth.isGuest)
-    console.log(props.auth.isStranger, props.auth.isGuest)
 
     const nav = (
       <Navbar>
@@ -28,7 +24,7 @@ class AppComponent extends Component {
         </Navbar.Header>
         <Nav>
           <Navigation
-            routes={routes}
+            routes={[]}
             isUser={props.auth.isUser}
           />
         </Nav>
@@ -59,12 +55,12 @@ class AppComponent extends Component {
           <Route
             exact
             path="/login"
-            render={() => props.auth.isGuest ? <LoginPage/> : <Redirect to="/"/>}
+            render={() => props.auth.isGuest ? <LoginPage/> : <Redirect to="/home"/>}
           />
           <Route
             exact
-            path="/"
-            component={HomePage}
+            path="/home"
+            render={() => <HomePage locale={props.app.locale}/>}
           />
           <Route
             path="/spraying"
@@ -81,5 +77,13 @@ export const App = connect(
     app: state.app,
     auth: state.auth,
   }),
-  dispatch => bindActionCreators({changeLocale}, dispatch),
+  dispatch => ({
+    changeLocale: locale => dispatch({
+      type: authEvents.CHANGE_LOCALE,
+      locale,
+    }),
+    logout: () => dispatch({
+      type: authEvents.LOGOUT,
+    }),
+  }),
 )(AppComponent)

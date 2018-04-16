@@ -1,7 +1,8 @@
 /* eslint-disable array-callback-return */
 
 import {dispatch} from 'store'
-import {onEntry, states, events} from 'statechart'
+import {onEntry} from 'statechart'
+import {authStates, authEvents} from 'auth/auth.statechart'
 
 const data = [
   '100;50,4044472;4,436020651;N;Kyleo;0;0;0;0;0;0;0;0;0;0;0; ; ;Panic Free;0;0;0;0;0;0;0;0;0;0;0; ; ;Vival;0;0;0;0;0;0;0;0;0;0;0; ; ;Genoxone;0;0;0;0;0;0;0;0;0;0;0; ; ;0,028;0;0,76;0,02;0,04;0,18;0,11;0,13;0,27;0,63;1,2;3,35',
@@ -108,32 +109,43 @@ export const sections = sectionsData
 
 export const api = action => {
   switch (action.type) {
-    case onEntry(states.STRANGER):
+    case onEntry(authStates.STRANGER):
       const token = localStorage.getItem('token')
 
-      if(token) {
+      if(token === 'valid token') {
         setTimeout(() => {
           dispatch({
-            type: events.AUTHENTICATION.SUCCESS,
+            type: authEvents.AUTHENTICATION.SUCCESS,
             username: 'Test user',
           })
         }, 500)
       }
       else {
-        setTimeout(() => {dispatch({type: events.AUTHENTICATION.FAIL})}, 500)
+        setTimeout(() => {dispatch({type: authEvents.AUTHENTICATION.FAIL})}, 500)
       }
       break
 
-    case onEntry(states.LOGGING_IN):
-      if(action.username === 'asdf' && action.password === 'pass') {
-        dispatch({type: events.LOGIN.SUCCESS})
-      }
-      else {
-        dispatch({
-          type: events.LOGIN.FAIL,
-          message: 'Wrong username or password',
-        })
-      }
+    case onEntry(authStates.LOGGING_IN):
+      setTimeout(() => {
+        if(action.username === 'Test user' && action.password === 'pass') {
+          localStorage.setItem('token', 'valid token')
+
+          dispatch({
+            type: authEvents.LOGIN.SUCCESS,
+            username: 'Test user',
+          })
+        }
+        else {
+          dispatch({
+            type: authEvents.LOGIN.FAIL,
+            message: 'Wrong username or password',
+          })
+        }
+      }, 500)
+      break
+
+    case onEntry(authStates.GUEST):
+      localStorage.removeItem('token')
       break
 
     default:

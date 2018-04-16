@@ -1,6 +1,7 @@
 import update from 'immutability-helper'
 
-import {onEntry, onExit, onTransition, events, states} from 'statechart'
+import {onEntry, onExit, onTransition} from 'statechart'
+import {authStates as states, authEvents as events} from 'auth/auth.statechart'
 
 const initialState = {
   isStranger: true,
@@ -11,22 +12,27 @@ const initialState = {
 
 export const authReducer = (state = initialState, action) => {
   switch(action.type) {
+    // STRANGER
     case onExit(states.STRANGER):
       return update(state, {isStranger: {$set: false}})
 
-    case onTransition(events.AUTHENTICATION.SUCCESS):
-      return update(state, {
-        username: {$set: action.username},
-      })
-
+    // MEMBER
     case onEntry(states.MEMBER):
-      return update(state, {
-        isGuest: {$set: false},
-        username: {$set: action.username},
-      })
+      return update(state, {username: {$set: action.username}})
 
+    // GUEST
     case onEntry(states.GUEST):
       return update(state, {isGuest: {$set: true}})
+
+    case onExit(states.GUEST):
+      return update(state, {
+        message: {$set: ''},
+        isGuest: {$set: false},
+      })
+
+    // TRANSITIONS
+    case onTransition(events.LOGIN.FAIL):
+      return update(state, {message: {$set: action.message}})
 
     default:
       return state
