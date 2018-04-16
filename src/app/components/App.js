@@ -6,28 +6,30 @@ import {BrowserRouter as Router, Route, Redirect, Link} from 'react-router-dom'
 import {UserInfo} from 'auth/components/UserInfo'
 import {Navigation} from 'app/components/Navigation'
 import {LocaleSwitch} from 'app/components/LocaleSwitch/LocaleSwitch'
-import {LoginPage} from 'auth/components/LoginPage'
+import {LoginPage} from 'auth/components/LoginPage/LoginPage'
 import {HomePage} from 'home/components/HomePage'
 import {SprayingPage} from 'spraying/components/SprayingPage'
 import {authEvents} from 'auth/auth.statechart'
+import {translate, locales} from 'app/utils/i18n'
 
 class AppComponent extends Component {
   render() {
     const props = this.props
 
-    const nav = (
+    const nav = props.auth.isGuest ? null : (
+      <Nav>
+        <Navigation/>
+      </Nav>
+    )
+
+    const navbar = (
       <Navbar>
         <Navbar.Header>
           <Navbar.Brand>
-            <Link to="/home">G&G | Spraying</Link>
+            <Link to="/home">G&G | {translate(locales.SPRAYING)}</Link>
           </Navbar.Brand>
         </Navbar.Header>
-        <Nav>
-          <Navigation
-            routes={[]}
-            isUser={props.auth.isUser}
-          />
-        </Nav>
+        {nav}
         <Nav pullRight>
           <LocaleSwitch
             locale={props.app.locale}
@@ -42,15 +44,20 @@ class AppComponent extends Component {
       </Navbar>
     )
 
-    if(props.auth.isStranger) return <div>authenticating, please wait...</div>
+    if(props.auth.isStranger) return <div>{translate(locales.AUTHENTICATING_PLEASE_WAIT)}...</div>
 
     return (
       <Router>
         <div>
-          {nav}
+          {navbar}
           <Route
             path="/"
             render={({location: {pathname}}) => props.auth.isGuest && pathname !== '/login' && <Redirect to="/login"/>}
+          />
+          <Route
+            exact
+            path="/"
+            render={() => <Redirect to="/home"/>}
           />
           <Route
             exact
@@ -60,7 +67,7 @@ class AppComponent extends Component {
           <Route
             exact
             path="/home"
-            render={() => <HomePage locale={props.app.locale}/>}
+            component={HomePage}
           />
           <Route
             path="/spraying"

@@ -1,5 +1,5 @@
-import {appEvents} from 'app/app.statechart'
-import {onTransition} from 'statechart'
+import {onEntry} from 'statechart'
+import {appStates} from 'app/app.statechart'
 
 const initialState = {
   locale: 'hu',
@@ -7,7 +7,7 @@ const initialState = {
 
 export const appReducer = (state = initialState, action) => {
   switch(action.type) {
-    case onTransition(appEvents.CHANGE_LOCALE):
+    case onEntry(appStates.INITIALIZED):
       return {
         locale: action.locale,
       }

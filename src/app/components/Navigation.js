@@ -1,29 +1,19 @@
 import React from 'react'
 import {NavDropdown, NavItem} from 'react-bootstrap'
 import {LinkContainer} from 'react-router-bootstrap'
-import {arrayOf, shape, bool, string} from 'prop-types'
 
-export const Navigation = props => (
+import {translate, locales} from 'app/utils/i18n'
+
+export const Navigation = () => (
   <NavDropdown
     id="auth-Navigation-NavDropdown"
-    title="Pages"
+    title={translate(locales.PAGES)}
   >
-    {props.routes.map((route, index) => !props.isUser ? null : (
-        <LinkContainer
-          key={index}
-          to={route.path}
-        >
-          <NavItem>{route.title}</NavItem>
-        </LinkContainer>
-      )
-    )}
+    <LinkContainer to="/home">
+      <NavItem>{translate(locales.HOME)}</NavItem>
+    </LinkContainer>
+    <LinkContainer to="/spraying">
+      <NavItem>{translate(locales.SPRAYING)}</NavItem>
+    </LinkContainer>
   </NavDropdown>
 )
-
-Navigation.propTypes = {
-  routes: arrayOf(shape({
-    path: string.isRequired,
-    title: string.isRequired,
-    isAuthenticated: bool.isRequired,
-  })).isRequired,
-}

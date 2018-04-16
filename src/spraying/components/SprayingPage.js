@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {connect, Provider} from 'react-redux'
+import {connect} from 'react-redux'
 import * as ol from 'openlayers'
 import update from 'immutability-helper'
 import {
@@ -12,73 +12,64 @@ import {
   Col,
   Table,
   Label,
-  Button,
 } from 'react-bootstrap'
 import _ from 'lodash'
-import ReactDOM from 'react-dom'
-import {bindActionCreators} from 'redux'
 
-import {store} from 'store'
-import {Popup} from 'spraying/components/Popup'
-import {selectSection} from 'actions'
-import {api} from 'api'
-import {i18n} from 'app/utils/i18n'
-import {locales} from 'app/utils/locales'
+import {sprayingEvents} from 'spraying/spraying.statechart'
+import {Map} from 'spraying/components/Map'
+import {translate, locales} from 'app/utils/i18n'
 
 const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? 'yes' : 'no'}</Label>
-const overlayElement = document.createElement('div')
 
 export class SprayingPageComponent extends Component {
   state = {
-    map: null,
     isOptionsPanelOpened: false,
     clickedSectionId: null,
-    sections: [],
     selectedSectorIndex: 10,
     sectors: [
       {
         id: 1,
-        name: 'Sector 1',
+        name: translate(locales.SECTOR) + ' 1',
         selected: true,
       },
       {
         id: 2,
-        name: 'Sector 2',
+        name: translate(locales.SECTOR) + ' 2',
         selected: false,
       },
       {
         id: 3,
-        name: 'Sector 3',
+        name: translate(locales.SECTOR) + ' 3',
         selected: false,
       },
       {
         id: 4,
-        name: 'Sector 4',
+        name: translate(locales.SECTOR) + ' 4',
         selected: false,
       },
       {
         id: 5,
-        name: 'Sector 5',
+        name: translate(locales.SECTOR) + ' 5',
         selected: false,
       },
       {
         id: 6,
-        name: 'Sector 6',
+        name: translate(locales.SECTOR) + ' 6',
         selected: false,
       },
       {
         id: 7,
-        name: 'Sector 7',
+        name: translate(locales.SECTOR) + ' 7',
         selected: false,
       },
       {
         id: 8,
-        name: 'Sector 8',
+        name: translate(locales.SECTOR) + ' 8',
         selected: false,
       },
       {
         id: 9,
-        name: 'Sector 9',
+        name: translate(locales.SECTOR) + ' 9',
         selected: false,
       },
     ],
@@ -106,145 +97,40 @@ export class SprayingPageComponent extends Component {
     ],
     columns: [
       {
-        label: 'Distance [m]',
-        labelWithoutUnit: 'Distance',
+        label: `${translate(locales.DISTANCE)} [m]`,
+        labelWithoutUnit: translate(locales.DISTANCE),
         show: true,
       },
       {
-        label: 'Position',
-        labelWithoutUnit: 'Position',
+        label: translate(locales.POSITION),
+        labelWithoutUnit: translate(locales.POSITION),
         show: true,
       },
       {
-        label: 'Sprayed',
-        labelWithoutUnit: 'Sprayed',
+        label: translate(locales.SPRAYED),
+        labelWithoutUnit: translate(locales.SPRAYED),
         show: true,
       },
       {
-        label: 'Water [l]',
-        labelWithoutUnit: 'Water',
+        label: `${translate(locales.WATER)} [l]`,
+        labelWithoutUnit: translate(locales.WATER),
         show: true,
       },
       {
-        label: 'Water dose [l/ha]',
-        labelWithoutUnit: 'Water dose',
+        label: `${translate(locales.WATER_DOSE)} [l/ha]`,
+        labelWithoutUnit: translate(locales.WATER_DOSE),
         show: true,
       },
       {
-        label: 'Weed infestation [%]',
-        labelWithoutUnit: 'Weed infestation',
+        label: `${translate(locales.WEED_INFESTATION)} [%]`,
+        labelWithoutUnit: translate(locales.WEED_INFESTATION),
         show: true,
       },
     ],
   }
 
-  componentWillUnmount() {
-    console.log('spray will unmount')
-  }
-
-  componentDidMount() {
-    console.log('spray did mount')
-    api.getSectionData().then(sectionData => {
-      const vectorSource = new ol.source.Vector({})
-
-      sectionData.forEach((section, index) => {
-        const iconFeature = new ol.Feature({
-          geometry: new ol.geom.Point(ol.proj.fromLonLat([section.position.lon, section.position.lat])),
-          name: 'Section ' + (index + 1),
-          sectionId: section.id,
-        })
-
-        vectorSource.addFeature(iconFeature)
-      })
-
-      const iconStyle = new ol.style.Style({
-        image: new ol.style.Icon(({
-          anchor: [0.5, 46],
-          anchorXUnits: 'fraction',
-          anchorYUnits: 'pixels',
-          opacity: 0.75,
-          src: 'http://openlayers.org/en/v3.9.0/examples/data/icon.png',
-        })),
-      })
-
-      const vectorLayer = new ol.layer.Vector({
-        source: vectorSource,
-        style: iconStyle,
-      })
-
-      const map = new ol.Map({
-        layers: [
-          new ol.layer.Tile({
-            source: new ol.source.OSM()
-          }),
-          vectorLayer,
-        ],
-        target: 'map',
-        view: new ol.View({
-          center: [0, 0],
-          zoom: 2
-        })
-      })
-
-      overlayElement.setAttribute('id', 'popupComponent')
-      const popupOverlay = new ol.Overlay(
-        {
-          element: overlayElement,
-          stopEvent: false,
-        })
-
-      map.addOverlay(popupOverlay)
-
-      ReactDOM.render(
-        <Provider store={store}>
-          <Popup/>
-        </Provider>,
-        overlayElement)
-
-      map.on('pointermove', e => {
-        const hit = map.forEachFeatureAtPixel(e.pixel, () => true)
-
-        map.getTargetElement().style.cursor = hit ? 'pointer' : ''
-      })
-
-      map.on('click', e => {
-        const feature = map.forEachFeatureAtPixel(e.pixel, feature => feature)
-
-        if(feature) {
-          const geometry = feature.getGeometry()
-          const position = geometry.getCoordinates()
-          popupOverlay.setPosition(position)
-          this.props.selectSection(feature.get('sectionId'))
-        }
-      })
-
-      const sections = sectionData.map(data => ({
-        data,
-        checked: false,
-      }))
-
-      sections[0].checked = true
-
-      const bound = map.getLayers().getArray()[1].getSource().getExtent()
-      map.getView().fit(bound)
-
-      this.setState({
-        sections,
-        map,
-      })
-    })
-  }
-
-  componentDidUpdate() {
-    if(this.props.popupIsOpened) {
-      overlayElement.setAttribute('style', 'display:block')
-    }
-    else {
-      overlayElement.setAttribute('style', 'display:none')
-    }
-  }
-
   render() {
+    const props = this.props
     const state = this.state
 
     const getColumnsLength = () => {
@@ -259,8 +145,8 @@ export class SprayingPageComponent extends Component {
       <Table striped bordered condensed hover>
         <thead>
         <tr>
-          {getColumnsLength() > 0 && <th colSpan={getColumnsLength()}>Section data</th>}
-          {state.chemicals.map((chemical, index) => chemical.selected ? <th key={index} colSpan="4">Chemical: {chemical.name}</th> : null)}
+          {getColumnsLength() > 0 && <th colSpan={getColumnsLength()}>{translate(locales.SECTION_DATA)}</th>}
+          {state.chemicals.map((chemical, index) => chemical.selected ? <th key={index} colSpan="4">{translate(locales.CHEMICAL)}: {chemical.name}</th> : null)}
         </tr>
         <tr>
           {state.columns.map((column, index) => {
@@ -288,27 +174,25 @@ export class SprayingPageComponent extends Component {
             const columnHeaders = []
 
             if(state.selectedSectorIndex === 10) {
-              columnHeaders.push(<th key={chemical.name + '1'}>Quantity [l]</th>)
+              columnHeaders.push(<th key={chemical.name + '1'}>{translate(locales.QUANTITY)} [l]</th>)
             }
             else {
-              columnHeaders.push(<th key={chemical.name + '2'}>Sector {state.selectedSectorIndex + 1} Quantity [l]</th>)
+              columnHeaders.push(<th key={chemical.name + '2'}>Sector {state.selectedSectorIndex + 1} {translate(locales.QUANTITY)} [l]</th>)
             }
 
-            columnHeaders.push(<th key={chemical.name + '3'}>Dose [l/ha]</th>)
-            columnHeaders.push(<th key={chemical.name + '4'}>Left nozzle majority</th>)
-            columnHeaders.push(<th key={chemical.name + '5'}>Right nozzle majority</th>)
+            columnHeaders.push(<th key={chemical.name + '3'}>{translate(locales.DOSE)} [l/ha]</th>)
+            columnHeaders.push(<th key={chemical.name + '4'}>{translate(locales.LEFT_NOZZLE_MAJORITY)}</th>)
+            columnHeaders.push(<th key={chemical.name + '5'}>{translate(locales.RIGHT_NOZZLE_MAJORITY)}</th>)
 
             return columnHeaders
           })}
         </tr>
         </thead>
         <tbody>
-        {state.sections.map((section, sectionIndex) => {
-          const data = section.data
-
+        {props.sections.map((section, sectionIndex) => {
           const sectionColumns = []
 
-          state.columns[0].show && sectionColumns.push(<td key={'section' + sectionIndex + 'distance'}>{data.distance}</td>)
+          state.columns[0].show && sectionColumns.push(<td key={'section' + sectionIndex + 'distance'}>{section.distance}</td>)
 
           state.columns[1].show && sectionColumns.push(
             <td key={'section' + sectionIndex + 'position'}>
@@ -316,24 +200,24 @@ export class SprayingPageComponent extends Component {
                 href="#map"
                 onClick={e => {
                   e.preventDefault()
-                  state.map.getView().setCenter(ol.proj.fromLonLat([section.data.position.lon, section.data.position.lat]))
+                  state.map.getView().setCenter(ol.proj.fromLonLat([section.position.lon, section.position.lat]))
                   state.map.getView().setZoom(18)
                   this.mapNode.scrollIntoView()
                 }}
               >
-                {data.position.lat + ', ' + data.position.lon}
+                {section.position.lat + ', ' + section.position.lon}
               </a>
             </td>
           )
 
-          state.columns[2].show && sectionColumns.push(<td key={'section' + sectionIndex + 'sprayed'}>{boolLabel(data.sprayed)}</td>)
-          state.columns[3].show && sectionColumns.push(<td key={'section' + sectionIndex + 'water'}>{data.water}</td>)
-          state.columns[4].show && sectionColumns.push(<td key={'section' + sectionIndex + 'waterDose'}>{data.waterDosage}</td>)
+          state.columns[2].show && sectionColumns.push(<td key={'section' + sectionIndex + 'sprayed'}>{boolLabel(section.sprayed)}</td>)
+          state.columns[3].show && sectionColumns.push(<td key={'section' + sectionIndex + 'water'}>{section.water}</td>)
+          state.columns[4].show && sectionColumns.push(<td key={'section' + sectionIndex + 'waterDose'}>{section.waterDosage}</td>)
 
           const weedInfestationCell = state.selectedSectorIndex === 10 ? (
-            <td key={'section' + sectionIndex + 'weedInfestation'}>{data.weedInfestation}</td>
+            <td key={'section' + sectionIndex + 'weedInfestation'}>{section.weedInfestation}</td>
           ) : (
-            <td key={'section' + sectionIndex + 'weedInfestation'}>{data.sectors[state.selectedSectorIndex].weedInfestation}</td>
+            <td key={'section' + sectionIndex + 'weedInfestation'}>{section.sectors[state.selectedSectorIndex].weedInfestation}</td>
           )
 
           state.columns[5].show && sectionColumns.push(weedInfestationCell)
@@ -346,7 +230,7 @@ export class SprayingPageComponent extends Component {
               {state.chemicals.map(chemical => {
                 if(chemical.selected) {
                   const chemicalColumns = []
-                  const chemicalData = section.data.chemicals.find(c => {
+                  const chemicalData = section.chemicals.find(c => {
                     return c.id === chemical.id
                   })
 
@@ -380,7 +264,7 @@ export class SprayingPageComponent extends Component {
         <Panel.Heading>
           <Panel.Title
             toggle
-          >Table settings</Panel.Title>
+          >{translate(locales.TABLE_SETTINGS)}</Panel.Title>
         </Panel.Heading>
         <Panel.Collapse>
           <Panel.Body>
@@ -389,7 +273,7 @@ export class SprayingPageComponent extends Component {
                 <Col
                   xs={4}
                 >
-                  <h4>Sectors</h4>
+                  <h4>{translate(locales.SECTORS)}</h4>
                   <FormGroup
                     onChange={e => this.setState({selectedSectorIndex: Number(e.target.dataset.index)})}
                   >
@@ -397,9 +281,7 @@ export class SprayingPageComponent extends Component {
                       defaultChecked
                       name="sector"
                       data-index={10}
-                    >
-                      All Sectors
-                    </Radio>
+                    >{translate(locales.ALL_SECTORS)}</Radio>
                     {state.sectors.map((sector, index) => (
                       <Radio
                         key={index}
@@ -414,7 +296,7 @@ export class SprayingPageComponent extends Component {
                 <Col
                   xs={4}
                 >
-                  <h4>Chemicals</h4>
+                  <h4>{translate(locales.CHEMICALS)}</h4>
                   <FormGroup
                     onChange={e => {
                       const selected = e.target.checked
@@ -446,7 +328,7 @@ export class SprayingPageComponent extends Component {
                 <Col
                   xs={4}
                 >
-                  <h4>Columns</h4>
+                  <h4>{translate(locales.COLUMNS)}</h4>
                   <FormGroup
                     onChange={e => {
                       const show = e.target.checked
@@ -482,34 +364,13 @@ export class SprayingPageComponent extends Component {
       </Panel>
     )
 
-    return (
+    return props.isSectionsLoading ? <div>{translate(locales.LOADING)}...</div> : (
       <div>
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: 450,
-            margin: '0 auto',
-            marginBottom: 20,
-          }}
-          id="map"
-          className="map"
-          ref={node => this.mapNode = node}
-        >
-          <Button
-            style={{
-              position: 'absolute',
-              zIndex: 1,
-              top: 10,
-              left: 10,
-            }}
-            onClick={() => {
-              const bound = state.map.getLayers().getArray()[1].getSource().getExtent()
-              state.map.getView().fit(bound)
-            }}
-          >Fit to map</Button>
-        </div>
-        {i18n.translate(locales.CANCEL)}
+        <Map
+          sections={props.sections}
+          selectSection={props.selectSection}
+          popupIsOpened={props.popupIsOpened}
+        />
         {control}
         {dataTable}
       </div>
@@ -519,9 +380,14 @@ export class SprayingPageComponent extends Component {
 
 export const SprayingPage = connect(
   state => ({
+    sections: state.spraying.sections,
+    isSectionsLoading: state.spraying.isSectionsLoading,
     popupIsOpened: state.spraying.popupIsOpened,
   }),
-  dispatch => bindActionCreators({
-    selectSection,
-  }, dispatch),
+  dispatch => ({
+    selectSection: sectionId => dispatch({
+      type: sprayingEvents.SELECT_SECTION,
+      sectionId,
+    }),
+  }),
 )(SprayingPageComponent)

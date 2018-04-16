@@ -1,5 +1,6 @@
 import {authStatechart} from 'auth/auth.statechart'
 import {appStatechart} from 'app/app.statechart'
+import {sprayingStatechart} from 'spraying/spraying.statechart'
 
 export const onEntry = state => 'a:entry:' + state
 
@@ -14,6 +15,7 @@ export const statechart = [
     states: [
       authStatechart,
       appStatechart,
+      sprayingStatechart,
     ],
   },
 ]

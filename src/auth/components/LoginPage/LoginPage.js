@@ -3,6 +3,7 @@ import {connect} from 'react-redux'
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap'
 
 import {authEvents} from 'auth/auth.statechart'
+import './LoginPage.css'
 
 class LoginPageComponent extends Component {
   state = {
@@ -15,7 +16,7 @@ class LoginPageComponent extends Component {
     const state = this.state
 
     return (
-      <form>
+      <form className="LoginPage">
         <FormGroup>
           <ControlLabel>username</ControlLabel>
           <FormControl

@@ -17,7 +17,6 @@ export const authEvents = {
     SUCCESS: 'AUTHENTICATION_SUCCESS',
     FAIL: 'AUTHENTICATION_FAIL',
   },
-  CHANGE_LOCALE: 'CHANGE_LOCALE',
 }
 
 export const authStatechart =   {

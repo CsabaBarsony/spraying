@@ -1,33 +1,34 @@
-// import update from 'immutability-helper'
+import update from 'immutability-helper'
 
-import {sections} from 'api'
+import {onEntry} from 'statechart'
+import {sprayingStates} from 'spraying/spraying.statechart'
 
 const initialState = {
-  sections,
-  selectedSection: null,
+  sections: [],
+  selectedSectionId: null,
   popupIsOpened: false,
+  isSectionsLoading: true,
 }
 
 export function sprayingReducer(state = initialState, action) {
   switch(action.type) {
-    /*case actions.selectSection:
-      const selectedSection = sections.find(section => section.id === action.sectionId)
-
+    // SECTIONS
+    case onEntry(sprayingStates.SECTIONS):
       return update(state, {
-        selectedSection: {
-          $set: selectedSection,
-        },
-        popupIsOpened: {
-          $set: true,
-        },
+        sections: {$set: action.sections},
+        isSectionsLoading: {$set: false},
       })
 
-    case actions.closePopup:
+    // POPUP_OPENED
+    case onEntry(sprayingStates.POPUP_OPENED):
       return update(state, {
-        popupIsOpened: {
-          $set: false,
-        },
-      })*/
+        popupIsOpened: {$set: true},
+        selectedSectionId: {$set: action.sectionId},
+      })
+
+    // POPUP_CLOSED
+    case onEntry(sprayingStates.POPUP_CLOSED):
+      return update(state, {popupIsOpened: {$set: false}})
 
     default:
       return state

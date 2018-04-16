@@ -56,14 +56,14 @@ const spirit = (statechart, opts) => {
 
   return store => next => action => {
     if(!action.type.startsWith('a:')) {
-      if(options.log) console.log('action', action)
+      if(options.log) console.log('event', action)
       sc.gen({
         name: action.type,
         data: action,
       })
     }
     else {
-      if(options.log) console.log('event', action)
+      if(options.log) console.log('action', action)
       next(action)
     }
   }

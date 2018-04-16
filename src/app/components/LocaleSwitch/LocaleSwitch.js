@@ -42,7 +42,10 @@ export const LocaleSwitch = props => (
     {locales.filter(l => l.key !== props.locale).map((locale, index) => (
       <MenuItem
         key={index}
-        onClick={() => props.changeLocale(locale.key)}
+        onClick={() => {
+          localStorage.setItem('locale', locale.key)
+          window.location.reload()
+        }}
       >
         <LocaleComponent
           locale={locale}
