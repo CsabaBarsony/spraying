@@ -11,7 +11,7 @@ export class Position {
 
 export class ChemicalSector {
   /**
-   * @param id {name}
+   * @param id {number}
    * @param dosage {number}
    */
   constructor(id, dosage) {

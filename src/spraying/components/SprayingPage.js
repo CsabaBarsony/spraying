@@ -17,12 +17,16 @@ import _ from 'lodash'
 
 import {sprayingEvents} from 'spraying/spraying.statechart'
 import {Map} from 'spraying/components/Map'
+import {Description} from 'spraying/components/Description/Description'
+import {Summary} from 'spraying/components/Summary'
 import {translate, locales} from 'app/utils/i18n'
 
 const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? 'yes' : 'no'}</Label>
 
 export class SprayingPageComponent extends Component {
   state = {
+    isWeedInfectionDetailsVisible: false,
+    chemicalDetailsVisible: [],
     isOptionsPanelOpened: false,
     clickedSectionId: null,
     selectedSectorIndex: 10,
@@ -366,6 +370,12 @@ export class SprayingPageComponent extends Component {
 
     return props.isSectionsLoading ? <div>{translate(locales.LOADING)}...</div> : (
       <div>
+        <Description campaignDescription={props.campaignDescription}/>
+        <Summary
+          campaignSummary={props.campaignSummary}
+          isWeedInfectionDetailsVisible={state.isWeedInfectionDetailsVisible}
+          chemicalDetailsVisible={state.chemicalDetailsVisible}
+        />
         <Map
           sections={props.sections}
           selectSection={props.selectSection}
@@ -381,6 +391,8 @@ export class SprayingPageComponent extends Component {
 export const SprayingPage = connect(
   state => ({
     sections: state.spraying.sections,
+    campaignDescription: state.spraying.campaignDescription,
+    campaignSummary: state.spraying.campaignSummary,
     isSectionsLoading: state.spraying.isSectionsLoading,
     popupIsOpened: state.spraying.popupIsOpened,
   }),

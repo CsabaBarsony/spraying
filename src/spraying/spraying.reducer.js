@@ -5,6 +5,8 @@ import {sprayingStates} from 'spraying/spraying.statechart'
 
 const initialState = {
   sections: [],
+  campaignDescription: {},
+  campaignSummary: {},
   selectedSectionId: null,
   popupIsOpened: false,
   isSectionsLoading: true,
@@ -16,6 +18,8 @@ export function sprayingReducer(state = initialState, action) {
     case onEntry(sprayingStates.SECTIONS):
       return update(state, {
         sections: {$set: action.sections},
+        campaignDescription: {$set: action.campaignDescription},
+        campaignSummary: {$set: action.campaignSummary},
         isSectionsLoading: {$set: false},
       })
 

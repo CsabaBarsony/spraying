@@ -3,6 +3,8 @@
 import {dispatch} from 'store'
 import {onEntry} from 'statechart'
 import {sprayingEvents, sprayingStates} from 'spraying/spraying.statechart'
+import {CampaignDescription} from 'spraying/classes/CampaignDescription'
+import {CampaignSummary, WeedInfestationSummary, SectorQuantity, ChemicalSummary} from 'spraying/classes/CampaignSummary'
 
 const data = [
   '100;50,4044472;4,436020651;N;Kyleo;0;0;0;0;0;0;0;0;0;0;0; ; ;Panic Free;0;0;0;0;0;0;0;0;0;0;0; ; ;Vival;0;0;0;0;0;0;0;0;0;0;0; ; ;Genoxone;0;0;0;0;0;0;0;0;0;0;0; ; ;0,028;0;0,76;0,02;0,04;0,18;0,11;0,13;0,27;0,63;1,2;3,35',
@@ -31,6 +33,102 @@ const data = [
   '2400;50,4086309;4,404009063;Y;Kyleo;0;0;0;0;0;0;0;0;0;0;0; ; ;Panic Free;0,08;5;0,051;0,018;0,008;0,001;0,002;0;0;0;0;Y; ;Vival;0,007;0,4;0,004;0,002;0,001;0;0;0;0;0;0;Y; ;Genoxone;0,074;4,6;0,047;0,017;0,007;0,001;0,002;0;0;0;0;Y; ;6,004;250;1,94;7,09;2,59;1,29;0,16;0,06;0,06;0,26;0,43;0,19',
   '2500;50,40885326;4,402654988;Y;Kyleo;0;0;0;0;0;0;0;0;0;0;0; ; ;Panic Free;0,118;5;0,055;0,018;0,008;0;0,034;0,003;0;0;0;Y; ;Vival;0,009;0,4;0,004;0,001;0,001;0;0,003;0;0;0;0;Y; ;Genoxone;0,108;4,6;0,05;0,016;0,007;0;0,032;0,003;0;0;0;Y; ;7,432;250;4,63;14,38;3,1;0,62;0,21;0,88;0,19;0,26;0,25;0,04',
 ]
+
+const campaignDescription = new CampaignDescription(
+  '100 m summarized data',
+  'Belgium second campaign 2017',
+  'Charleroi-Sud - Brussels-Zuid',
+  new Date(2017, 8, 14),
+  '55,183 km',
+)
+
+const chemical1Summary = new ChemicalSummary(
+  1,
+  4.696,
+  [
+    new SectorQuantity(1, 123.123),
+    new SectorQuantity(2, 123.123),
+    new SectorQuantity(3, 123.123),
+    new SectorQuantity(4, 123.123),
+    new SectorQuantity(5, 123.123),
+    new SectorQuantity(6, 123.123),
+    new SectorQuantity(7, 123.123),
+    new SectorQuantity(8, 123.123),
+    new SectorQuantity(9, 123.123),
+  ],
+)
+
+const chemical2Summary = new ChemicalSummary(
+  2,
+  4.696,
+  [
+    new SectorQuantity(1, 123.123),
+    new SectorQuantity(2, 123.123),
+    new SectorQuantity(3, 123.123),
+    new SectorQuantity(4, 123.123),
+    new SectorQuantity(5, 123.123),
+    new SectorQuantity(6, 123.123),
+    new SectorQuantity(7, 123.123),
+    new SectorQuantity(8, 123.123),
+    new SectorQuantity(9, 123.123),
+  ],
+)
+
+const chemical3Summary = new ChemicalSummary(
+  3,
+  46.544,
+  [
+    new SectorQuantity(1, 123.123),
+    new SectorQuantity(2, 123.123),
+    new SectorQuantity(3, 123.123),
+    new SectorQuantity(4, 123.123),
+    new SectorQuantity(5, 123.123),
+    new SectorQuantity(6, 123.123),
+    new SectorQuantity(7, 123.123),
+    new SectorQuantity(8, 123.123),
+    new SectorQuantity(9, 123.123),
+  ],
+)
+
+const chemical4Summary = new ChemicalSummary(
+  4,
+  42.861,
+  [
+    new SectorQuantity(1, 123.123),
+    new SectorQuantity(2, 123.123),
+    new SectorQuantity(3, 123.123),
+    new SectorQuantity(4, 123.123),
+    new SectorQuantity(5, 123.123),
+    new SectorQuantity(6, 123.123),
+    new SectorQuantity(7, 123.123),
+    new SectorQuantity(8, 123.123),
+    new SectorQuantity(9, 123.123),
+  ],
+)
+
+const campaignSummary = new CampaignSummary(
+  4.696,
+  new WeedInfestationSummary(
+    3.56,
+    [
+      new SectorQuantity(1, 21.62),
+      new SectorQuantity(2, 6.31),
+      new SectorQuantity(3, 1.59),
+      new SectorQuantity(4, 0.5),
+      new SectorQuantity(5, 0.22),
+      new SectorQuantity(6, 0.25),
+      new SectorQuantity(7, 0.3),
+      new SectorQuantity(8, 0.54),
+      new SectorQuantity(9, 0.54),
+    ],
+  ),
+  [
+    chemical1Summary,
+    chemical2Summary,
+    chemical3Summary,
+    chemical4Summary,
+  ],
+)
 
 const formatNumber = original => {
   const i = original.indexOf(',')
@@ -110,6 +208,8 @@ export const sprayingApi = action => {
         dispatch({
           type: sprayingEvents.SECTIONS_LOADED,
           sections,
+          campaignDescription,
+          campaignSummary,
         })
       }, 1000)
       break
