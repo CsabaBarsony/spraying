@@ -211,7 +211,7 @@ export const sprayingApi = action => {
           campaignDescription,
           campaignSummary,
         })
-      }, 1000)
+      }, 300)
       break
 
     default:

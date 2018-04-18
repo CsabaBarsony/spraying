@@ -17,7 +17,8 @@ import _ from 'lodash'
 
 import {sprayingEvents} from 'spraying/spraying.statechart'
 import {Map} from 'spraying/components/Map'
-import {Description} from 'spraying/components/Description/Description'
+import {Description} from 'spraying/components/Description'
+import {CampaignOptions} from 'spraying/components/CampaignOptions'
 import {Summary} from 'spraying/components/Summary'
 import {translate, locales} from 'app/utils/i18n'
 
@@ -370,6 +371,11 @@ export class SprayingPageComponent extends Component {
 
     return props.isSectionsLoading ? <div>{translate(locales.LOADING)}...</div> : (
       <div>
+        <CampaignOptions
+          setCampaignOptions={campaignOptions => this.setState({...campaignOptions})}
+          isWeedInfectionDetailsVisible={state.isWeedInfectionDetailsVisible}
+          chemicalDetailsVisible={state.chemicalDetailsVisible}
+        />
         <Description campaignDescription={props.campaignDescription}/>
         <Summary
           campaignSummary={props.campaignSummary}
