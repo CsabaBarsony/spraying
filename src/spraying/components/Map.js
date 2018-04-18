@@ -16,95 +16,95 @@ export class Map extends Component {
   }
 
   componentDidMount() {
-    setTimeout(() => {
-      const vectorSource = new ol.source.Vector({})
+    const vectorSource = new ol.source.Vector({})
 
-      this.props.sections.forEach((section, index) => {
-        const iconFeature = new ol.Feature({
-          geometry: new ol.geom.Point(ol.proj.fromLonLat([section.position.lon, section.position.lat])),
-          name: 'Section ' + (index + 1),
-          sectionId: section.id,
-        })
-
-        vectorSource.addFeature(iconFeature)
+    this.props.sections.forEach((section, index) => {
+      const iconFeature = new ol.Feature({
+        geometry: new ol.geom.Point(ol.proj.fromLonLat([section.position.lon, section.position.lat])),
+        name: 'Section ' + (index + 1),
+        sectionId: section.id,
       })
 
-      const iconStyle = new ol.style.Style({
-        image: new ol.style.Icon(({
-          anchor: [0.5, 46],
-          anchorXUnits: 'fraction',
-          anchorYUnits: 'pixels',
-          opacity: 0.75,
-          src: 'http://openlayers.org/en/v3.9.0/examples/data/icon.png',
-        })),
+      vectorSource.addFeature(iconFeature)
+    })
+
+    const iconStyle = new ol.style.Style({
+      image: new ol.style.Icon(({
+        anchor: [0.5, 46],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+        opacity: 0.75,
+        src: 'http://openlayers.org/en/v3.9.0/examples/data/icon.png',
+      })),
+    })
+
+    const vectorLayer = new ol.layer.Vector({
+      source: vectorSource,
+      style: iconStyle,
+    })
+
+    const map = new ol.Map({
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        }),
+        vectorLayer,
+      ],
+      target: 'map',
+      view: new ol.View({
+        center: [0, 0],
+        zoom: 2
+      })
+    })
+
+    overlayElement.setAttribute('id', 'popupComponent')
+    const popupOverlay = new ol.Overlay(
+      {
+        element: overlayElement,
+        stopEvent: false,
       })
 
-      const vectorLayer = new ol.layer.Vector({
-        source: vectorSource,
-        style: iconStyle,
-      })
+    map.addOverlay(popupOverlay)
 
-      const map = new ol.Map({
-        layers: [
-          new ol.layer.Tile({
-            source: new ol.source.OSM()
-          }),
-          vectorLayer,
-        ],
-        target: 'map',
-        view: new ol.View({
-          center: [0, 0],
-          zoom: 2
-        })
-      })
+    ReactDOM.render(
+      <Provider store={store}>
+        <Popup/>
+      </Provider>,
+      overlayElement)
 
-      overlayElement.setAttribute('id', 'popupComponent')
-      const popupOverlay = new ol.Overlay(
-        {
-          element: overlayElement,
-          stopEvent: false,
-        })
+    map.on('pointermove', e => {
+      const hit = map.forEachFeatureAtPixel(e.pixel, () => true)
 
-      map.addOverlay(popupOverlay)
+      map.getTargetElement().style.cursor = hit ? 'pointer' : ''
+    })
 
-      ReactDOM.render(
-        <Provider store={store}>
-          <Popup/>
-        </Provider>,
-        overlayElement)
+    map.on('click', e => {
+      const feature = map.forEachFeatureAtPixel(e.pixel, feature => feature)
 
-      map.on('pointermove', e => {
-        const hit = map.forEachFeatureAtPixel(e.pixel, () => true)
+      if(feature) {
+        const geometry = feature.getGeometry()
+        const position = geometry.getCoordinates()
+        popupOverlay.setPosition(position)
+        this.props.selectSection(feature.get('sectionId'))
+      }
+    })
 
-        map.getTargetElement().style.cursor = hit ? 'pointer' : ''
-      })
+    const sections = this.props.sections.map(data => ({
+      data,
+      checked: false,
+    }))
 
-      map.on('click', e => {
-        const feature = map.forEachFeatureAtPixel(e.pixel, feature => feature)
+    sections[0].checked = true
 
-        if(feature) {
-          const geometry = feature.getGeometry()
-          const position = geometry.getCoordinates()
-          popupOverlay.setPosition(position)
-          this.props.selectSection(feature.get('sectionId'))
-        }
-      })
+    const bound = map.getLayers().getArray()[1].getSource().getExtent()
+    map.getView().fit(bound)
 
-      const sections = this.props.sections.map(data => ({
-        data,
-        checked: false,
-      }))
+    this.props.initMap(map, this.mapNode)
 
-      sections[0].checked = true
-
-      const bound = map.getLayers().getArray()[1].getSource().getExtent()
-      map.getView().fit(bound)
-
-      this.setState({
-        sections,
-        map,
-      })
-    }, 0)
+    this.setState({
+      sections,
+      map,
+    })
   }
 
   componentDidUpdate() {
