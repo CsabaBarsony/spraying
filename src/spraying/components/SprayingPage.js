@@ -2,7 +2,6 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import * as ol from 'openlayers'
 
-import {sprayingEvents} from 'spraying/spraying.statechart'
 import {DataTable} from 'spraying/components/DataTable'
 import {Map} from 'spraying/components/Map'
 import {Description} from 'spraying/components/Description'
@@ -48,8 +47,6 @@ export class SprayingPageComponent extends Component {
             this.mapNode = mapNode
           }}
           sections={props.sections}
-          selectSection={props.selectSection}
-          popupIsOpened={props.popupIsOpened}
         />
         <DataTable
           sections={props.sections}
@@ -67,12 +64,5 @@ export const SprayingPage = connect(
     campaignDescription: state.spraying.campaignDescription,
     campaignSummary: state.spraying.campaignSummary,
     isSectionsLoading: state.spraying.isSectionsLoading,
-    popupIsOpened: state.spraying.popupIsOpened,
-  }),
-  dispatch => ({
-    selectSection: sectionId => dispatch({
-      type: sprayingEvents.SELECT_SECTION,
-      sectionId,
-    }),
   }),
 )(SprayingPageComponent)
