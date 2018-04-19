@@ -6,7 +6,7 @@ import PropTypes from 'prop-types'
 import {locales, translate} from 'app/utils/i18n'
 import {Section} from 'spraying/classes/Spraying'
 
-const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? 'yes' : 'no'}</Label>
+const boolLabel = bool => <Label bsStyle={bool ? 'danger' : 'success'}>{bool ? 'yes' : 'no'}</Label>
 
 export const DataTable = props => {
   const chemicalSectorDetailsSummaryHeader = _.range(1, 5).map((chemicalId, chemicalIndex) => (

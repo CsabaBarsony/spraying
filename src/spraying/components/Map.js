@@ -11,7 +11,8 @@ const popupContainer = document.getElementById('sectionDataPopup')
 
 export class Map extends Component {
   componentDidMount() {
-    const vectorSource = new ol.source.Vector({})
+    const sprayedVectorSource = new ol.source.Vector({})
+    const notSprayedVectorSource = new ol.source.Vector({})
 
     this.props.sections.forEach((section, index) => {
       const iconFeature = new ol.Feature({
@@ -20,22 +21,42 @@ export class Map extends Component {
         sectionId: section.id,
       })
 
-      vectorSource.addFeature(iconFeature)
+      if(section.sprayed === 1) {
+        sprayedVectorSource.addFeature(iconFeature)
+      }
+      else {
+        notSprayedVectorSource.addFeature(iconFeature)
+      }
     })
 
-    const iconStyle = new ol.style.Style({
+    const sprayedIconStyle = new ol.style.Style({
       image: new ol.style.Icon(({
         anchor: [0.5, 46],
         anchorXUnits: 'fraction',
         anchorYUnits: 'pixels',
-        opacity: 0.75,
-        src: 'http://openlayers.org/en/v3.9.0/examples/data/icon.png',
+        opacity: 0.8,
+        src: 'img/icon_red_small.png',
       })),
     })
 
-    const vectorLayer = new ol.layer.Vector({
-      source: vectorSource,
-      style: iconStyle,
+    const notSprayedIconStyle = new ol.style.Style({
+      image: new ol.style.Icon(({
+        anchor: [0.5, 46],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'pixels',
+        opacity: 0.8,
+        src: 'img/icon_green_small.png',
+      })),
+    })
+
+    const sprayedVectorLayer = new ol.layer.Vector({
+      source: sprayedVectorSource,
+      style: sprayedIconStyle,
+    })
+
+    const notSprayedVectorLayer = new ol.layer.Vector({
+      source: notSprayedVectorSource,
+      style: notSprayedIconStyle,
     })
 
     this.map = new ol.Map({
@@ -43,7 +64,8 @@ export class Map extends Component {
         new ol.layer.Tile({
           source: new ol.source.OSM()
         }),
-        vectorLayer,
+        sprayedVectorLayer,
+        notSprayedVectorLayer,
       ],
       target: 'map',
       view: new ol.View({
@@ -84,8 +106,9 @@ export class Map extends Component {
 
     sections[0].checked = true
 
-    const bound = this.map.getLayers().getArray()[1].getSource().getExtent()
-    this.map.getView().fit(bound)
+    const boundSprayed = this.map.getLayers().getArray()[1].getSource().getExtent()
+    const boundNotSprayed = this.map.getLayers().getArray()[2].getSource().getExtent()
+    this.map.getView().fit(ol.extent.extend(boundSprayed, boundNotSprayed))
 
     this.props.initMap(this.map, this.mapNode, popupOverlay)
   }
@@ -115,8 +138,9 @@ export class Map extends Component {
               left: 10,
             }}
             onClick={() => {
-              const bound = this.map.getLayers().getArray()[1].getSource().getExtent()
-              this.map.getView().fit(bound)
+              const boundSprayed = this.map.getLayers().getArray()[1].getSource().getExtent()
+              const boundNotSprayed = this.map.getLayers().getArray()[2].getSource().getExtent()
+              this.map.getView().fit(ol.extent.extend(boundSprayed, boundNotSprayed))
             }}
           >{translate(locales.FIT_TO_MAP)}</Button>
         </div>
