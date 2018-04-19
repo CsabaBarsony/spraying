@@ -15,14 +15,31 @@ export class SprayingPageComponent extends Component {
     chemicalDetailsVisible: [],
     isOptionsPanelOpened: false,
     clickedSectionId: null,
+    isPopupOpened: false,
+    selectedSectionId: 0,
   }
 
   onPositionClick = (e, section) => {
     e.preventDefault()
+
+    this.popupOverlay.setPosition(ol.proj.fromLonLat([section.position.lon, section.position.lat]))
+
     this.map.getView().setCenter(ol.proj.fromLonLat([section.position.lon, section.position.lat]))
     this.map.getView().setZoom(18)
     this.mapNode.scrollIntoView()
+
+    this.setState({
+      isPopupOpened: true,
+      selectedSectionId: section.id,
+    })
   }
+
+  onOpenPopup = selectedSectionId => this.setState({
+    isPopupOpened: true,
+    selectedSectionId,
+  })
+
+  onClosePopup = () => this.setState({isPopupOpened: false})
 
   render() {
     const props = this.props
@@ -42,16 +59,22 @@ export class SprayingPageComponent extends Component {
           chemicalDetailsVisible={state.chemicalDetailsVisible}
         />
         <Map
-          initMap={(map, mapNode) => {
+          initMap={(map, mapNode, popupOverlay) => {
             this.map = map
             this.mapNode = mapNode
+            this.popupOverlay = popupOverlay
           }}
           sections={props.sections}
+          openPopup={this.onOpenPopup}
+          closePopup={this.onClosePopup}
+          isPopupOpened={state.isPopupOpened}
+          selectedSectionId={state.selectedSectionId}
         />
         <DataTable
           sections={props.sections}
           isWeedInfectionDetailsVisible={state.isWeedInfectionDetailsVisible}
           chemicalDetailsVisible={state.chemicalDetailsVisible}
+          onPositionClick={this.onPositionClick}
         />
       </div>
     )

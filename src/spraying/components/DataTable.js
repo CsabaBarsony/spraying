@@ -1,8 +1,10 @@
 import React from 'react'
 import _ from 'lodash'
 import {Table, Label} from 'react-bootstrap'
+import PropTypes from 'prop-types'
 
 import {locales, translate} from 'app/utils/i18n'
+import {Section} from 'spraying/classes/Spraying'
 
 const boolLabel = bool => <Label bsStyle={bool ? 'success' : 'danger'}>{bool ? 'yes' : 'no'}</Label>
 
@@ -71,7 +73,7 @@ export const DataTable = props => {
         <td>
           <a
             href="#map"
-            onClick={e => this.onPositionClick(e, section)}
+            onClick={e => props.onPositionClick(e, section)}
           >
             {section.position.lat + ', ' + section.position.lon}
           </a>
@@ -109,4 +111,11 @@ export const DataTable = props => {
       </tbody>
     </Table>
   )
+}
+
+DataTable.propTypes = {
+  sections: PropTypes.arrayOf(PropTypes.instanceOf(Section)).isRequired,
+  isWeedInfectionDetailsVisible: PropTypes.bool.isRequired,
+  chemicalDetailsVisible: PropTypes.arrayOf(PropTypes.number.isRequired).isRequired,
+  onPositionClick: PropTypes.func.isRequired,
 }

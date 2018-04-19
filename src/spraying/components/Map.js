@@ -1,19 +1,15 @@
 import React, {Component} from 'react'
 import {Button} from 'react-bootstrap'
 import * as ol from 'openlayers'
+import PropTypes from 'prop-types'
 
 import {Popup} from 'spraying/components/Popup'
 import {translate, locales} from 'app/utils/i18n'
+import {Section} from 'spraying/classes/Spraying'
 
 const popupContainer = document.getElementById('sectionDataPopup')
 
 export class Map extends Component {
-  state = {
-    map: null,
-    selectedSectionId: null,
-    popupIsOpened: false,
-  }
-
   componentDidMount() {
     const vectorSource = new ol.source.Vector({})
 
@@ -42,7 +38,7 @@ export class Map extends Component {
       style: iconStyle,
     })
 
-    const map = new ol.Map({
+    this.map = new ol.Map({
       layers: [
         new ol.layer.Tile({
           source: new ol.source.OSM()
@@ -62,25 +58,22 @@ export class Map extends Component {
         stopEvent: false,
       })
 
-    map.addOverlay(popupOverlay)
+    this.map.addOverlay(popupOverlay)
 
-    map.on('pointermove', e => {
-      const hit = map.forEachFeatureAtPixel(e.pixel, () => true)
+    this.map.on('pointermove', e => {
+      const hit = this.map.forEachFeatureAtPixel(e.pixel, () => true)
 
-      map.getTargetElement().style.cursor = hit ? 'pointer' : ''
+      this.map.getTargetElement().style.cursor = hit ? 'pointer' : ''
     })
 
-    map.on('click', e => {
-      const feature = map.forEachFeatureAtPixel(e.pixel, feature => feature)
+    this.map.on('click', e => {
+      const feature = this.map.forEachFeatureAtPixel(e.pixel, feature => feature)
 
       if(feature) {
         const geometry = feature.getGeometry()
         const position = geometry.getCoordinates()
         popupOverlay.setPosition(position)
-        this.setState({
-          selectedSectionId: feature.get('sectionId'),
-          popupIsOpened: !this.state.popupIsOpened,
-        })
+        this.props.openPopup(feature.get('sectionId'))
       }
     })
 
@@ -91,20 +84,14 @@ export class Map extends Component {
 
     sections[0].checked = true
 
-    const bound = map.getLayers().getArray()[1].getSource().getExtent()
-    map.getView().fit(bound)
+    const bound = this.map.getLayers().getArray()[1].getSource().getExtent()
+    this.map.getView().fit(bound)
 
-    this.props.initMap(map, this.mapNode)
-
-    this.setState({
-      sections,
-      map,
-    })
+    this.props.initMap(this.map, this.mapNode, popupOverlay)
   }
 
   render() {
     const props = this.props
-    const state = this.state
 
     return (
       <div>
@@ -128,18 +115,27 @@ export class Map extends Component {
               left: 10,
             }}
             onClick={() => {
-              const bound = state.map.getLayers().getArray()[1].getSource().getExtent()
-              state.map.getView().fit(bound)
+              const bound = this.map.getLayers().getArray()[1].getSource().getExtent()
+              this.map.getView().fit(bound)
             }}
           >{translate(locales.FIT_TO_MAP)}</Button>
         </div>
-        {state.popupIsOpened && (
+        {props.isPopupOpened && (
           <Popup
-            section={props.sections.find(s => s.id === state.selectedSectionId)}
-            closePopup={() => this.setState({popupIsOpened: false})}
+            section={props.sections.find(s => s.id === props.selectedSectionId)}
+            closePopup={props.closePopup}
           />
         )}
       </div>
     )
   }
+}
+
+Map.propTypes = {
+  sections: PropTypes.arrayOf(PropTypes.instanceOf(Section)).isRequired,
+  initMap: PropTypes.func.isRequired,
+  openPopup: PropTypes.func.isRequired,
+  closePopup: PropTypes.func.isRequired,
+  isPopupOpened: PropTypes.bool.isRequired,
+  selectedSectionId: PropTypes.number.isRequired,
 }

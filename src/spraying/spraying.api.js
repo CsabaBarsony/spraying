@@ -5,6 +5,7 @@ import {onEntry} from 'statechart'
 import {sprayingEvents, sprayingStates} from 'spraying/spraying.statechart'
 import {CampaignDescription} from 'spraying/classes/CampaignDescription'
 import {CampaignSummary, WeedInfestationSummary, SectorQuantity, ChemicalSummary} from 'spraying/classes/CampaignSummary'
+import {Section, Position} from 'spraying/classes/Spraying'
 
 const data = [
   '100;50,4044472;4,436020651;N;Kyleo;0;0;0;0;0;0;0;0;0;0;0; ; ;Panic Free;0;0;0;0;0;0;0;0;0;0;0; ; ;Vival;0;0;0;0;0;0;0;0;0;0;0; ; ;Genoxone;0;0;0;0;0;0;0;0;0;0;0; ; ;0,028;0;0,76;0,02;0,04;0,18;0,11;0,13;0,27;0,63;1,2;3,35',
@@ -182,20 +183,22 @@ const getSections = () => data.map((row, index) => {
     })
   })
 
-  return {
-    id: index + 1,
-    distance: Number(v[0]),
-    position: {
-      lat: formatNumber(v[1]),
-      lon: formatNumber(v[2]),
-    },
-    sprayed: formatSprayed(v[3]),
-    water: formatNumber(v[60]),
-    waterDosage: formatNumber(v[61]),
-    weedInfestation: formatNumber(v[62]),
-    chemicals: chemicals,
-    sectors: sectors,
-  }
+  const position = new Position(
+    formatNumber(v[1]),
+    formatNumber(v[2]),
+  )
+
+  return new Section(
+    index + 1,
+    Number(v[0]),
+    position,
+    formatSprayed(v[3]),
+    formatNumber(v[60]),
+    formatNumber(v[61]),
+    formatNumber(v[62]),
+    chemicals,
+    sectors,
+  )
 })
 
 export const sprayingApi = action => {

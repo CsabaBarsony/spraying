@@ -1,8 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import {Button, Glyphicon} from 'react-bootstrap'
+import PropTypes from 'prop-types'
 
 import {translate, locales} from 'app/utils/i18n'
+import {Section} from 'spraying/classes/Spraying'
 
 export const Popup = props => ReactDOM.createPortal(
   <div
@@ -57,3 +59,8 @@ export const Popup = props => ReactDOM.createPortal(
   </div>,
   document.getElementById('sectionDataPopup'),
 )
+
+Popup.propTypes = {
+  section: PropTypes.instanceOf(Section).isRequired,
+  closePopup: PropTypes.func.isRequired,
+}
