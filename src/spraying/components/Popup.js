@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {Button, Glyphicon} from 'react-bootstrap'
+import {Button, Glyphicon, Table} from 'react-bootstrap'
 import PropTypes from 'prop-types'
 
 import {translate, locales} from 'app/utils/i18n'
@@ -21,11 +21,8 @@ export const Popup = props => ReactDOM.createPortal(
     >
       <Glyphicon glyph="remove"/>
     </Button>
-    <div>Belgium Second campaign 2017</div>
-    <div>Charleroi-Sud - Brussels-Zuid</div>
-    <div>2017.09.14. 9:56:29-2017.09.14. 11:05:56</div>
     <div>{translate(locales.DISTANCE)}: {props.section.distance}m</div>
-    <table className="table table-striped table-bordered table-condensed table-hover">
+    <Table striped bordered condensed hover>
       <thead>
       <tr>
         <th/>
@@ -55,7 +52,7 @@ export const Popup = props => ReactDOM.createPortal(
         <td>{props.section.chemicals[3].quantity}</td>
       </tr>
       </tbody>
-    </table>
+    </Table>
   </div>,
   document.getElementById('sectionDataPopup'),
 )

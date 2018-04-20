@@ -11,6 +11,7 @@ import {HomePage} from 'home/components/HomePage'
 import {SprayingPage} from 'spraying/components/SprayingPage'
 import {authEvents} from 'auth/auth.statechart'
 import {translate, locales} from 'app/utils/i18n'
+import {CampaignOptions} from 'spraying/components/CampaignOptions'
 
 class AppComponent extends Component {
   render() {
@@ -30,6 +31,10 @@ class AppComponent extends Component {
           </Navbar.Brand>
         </Navbar.Header>
         {nav}
+        <Route
+          path="/spraying"
+          component={CampaignOptions}
+        />
         <Nav pullRight>
           <LocaleSwitch
             locale={props.app.locale}

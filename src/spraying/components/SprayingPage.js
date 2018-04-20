@@ -1,19 +1,18 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import * as ol from 'openlayers'
+import {Grid, Row, Col} from 'react-bootstrap'
 
 import {DataTable} from 'spraying/components/DataTable'
 import {Map} from 'spraying/components/Map'
 import {Description} from 'spraying/components/Description'
-import {CampaignOptions} from 'spraying/components/CampaignOptions'
 import {Summary} from 'spraying/components/Summary'
 import {translate, locales} from 'app/utils/i18n'
 
 export class SprayingPageComponent extends Component {
   state = {
-    isWeedInfectionDetailsVisible: false,
-    chemicalDetailsVisible: [],
-    isOptionsPanelOpened: false,
+    /*isWeedInfectionDetailsVisible: false,
+    chemicalDetailsVisible: [],*/
     clickedSectionId: null,
     isPopupOpened: false,
     selectedSectionId: 0,
@@ -46,37 +45,68 @@ export class SprayingPageComponent extends Component {
     const state = this.state
 
     return props.isSectionsLoading ? <div>{translate(locales.LOADING)}...</div> : (
-      <div>
-        <CampaignOptions
+      <Grid>
+
+        <Row>
+          <Col lg={12}>
+            <Row>
+              <Col
+                sm={12}
+                lg={6}
+              >
+                <Description campaignDescription={props.campaignDescription}/>
+              </Col>
+              <Col
+                sm={12}
+                lg={6}
+              >
+                <Summary
+                  campaignSummary={props.campaignSummary}
+                  isWeedInfectionDetailsVisible={props.isWeedInfectionDetailsVisible}
+                  chemicalDetailsVisible={props.chemicalDetailsVisible}
+                />
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <Map
+                  initMap={(map, mapNode, popupOverlay) => {
+                    this.map = map
+                    this.mapNode = mapNode
+                    this.popupOverlay = popupOverlay
+                  }}
+                  sections={props.sections}
+                  openPopup={this.onOpenPopup}
+                  closePopup={this.onClosePopup}
+                  isPopupOpened={state.isPopupOpened}
+                  selectedSectionId={state.selectedSectionId}
+                />
+              </Col>
+            </Row>
+          </Col>
+          <Col
+            style={{
+              padding: 0,
+              overflowX: 'scroll',
+            }}
+            lg={12}
+          >
+            <DataTable
+              sections={props.sections}
+              isWeedInfectionDetailsVisible={props.isWeedInfectionDetailsVisible}
+              chemicalDetailsVisible={props.chemicalDetailsVisible}
+              onPositionClick={this.onPositionClick}
+            />
+          </Col>
+        </Row>
+
+        {/*<CampaignOptions
           setCampaignOptions={campaignOptions => this.setState({...campaignOptions})}
-          isWeedInfectionDetailsVisible={state.isWeedInfectionDetailsVisible}
-          chemicalDetailsVisible={state.chemicalDetailsVisible}
-        />
-        <Description campaignDescription={props.campaignDescription}/>
-        <Summary
-          campaignSummary={props.campaignSummary}
-          isWeedInfectionDetailsVisible={state.isWeedInfectionDetailsVisible}
-          chemicalDetailsVisible={state.chemicalDetailsVisible}
-        />
-        <Map
-          initMap={(map, mapNode, popupOverlay) => {
-            this.map = map
-            this.mapNode = mapNode
-            this.popupOverlay = popupOverlay
-          }}
-          sections={props.sections}
-          openPopup={this.onOpenPopup}
-          closePopup={this.onClosePopup}
-          isPopupOpened={state.isPopupOpened}
-          selectedSectionId={state.selectedSectionId}
-        />
-        <DataTable
-          sections={props.sections}
-          isWeedInfectionDetailsVisible={state.isWeedInfectionDetailsVisible}
-          chemicalDetailsVisible={state.chemicalDetailsVisible}
-          onPositionClick={this.onPositionClick}
-        />
-      </div>
+          isWeedInfectionDetailsVisible={props.isWeedInfectionDetailsVisible}
+          chemicalDetailsVisible={props.chemicalDetailsVisible}
+        />*/}
+
+      </Grid>
     )
   }
 }
@@ -87,5 +117,7 @@ export const SprayingPage = connect(
     campaignDescription: state.spraying.campaignDescription,
     campaignSummary: state.spraying.campaignSummary,
     isSectionsLoading: state.spraying.isSectionsLoading,
+    isWeedInfectionDetailsVisible: state.spraying.isWeedInfectionDetailsVisible,
+    chemicalDetailsVisible: state.spraying.chemicalDetailsVisible,
   }),
 )(SprayingPageComponent)

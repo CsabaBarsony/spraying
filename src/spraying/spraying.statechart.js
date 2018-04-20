@@ -6,6 +6,7 @@ export const sprayingStates = {
 
 export const sprayingEvents = {
   SECTIONS_LOADED: 'SPRAYING/SECTIONS_LOADED',
+  SET_OPTIONS: 'SET_OPTIONS',
 }
 
 export const sprayingStatechart = {
@@ -22,6 +23,12 @@ export const sprayingStatechart = {
     },
     {
       id: sprayingStates.SECTIONS,
+      transitions: [
+        {
+          event: sprayingEvents.SET_OPTIONS,
+          target: sprayingStates.SECTIONS,
+        }
+      ],
     },
   ],
 }

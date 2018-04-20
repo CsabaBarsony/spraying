@@ -1,14 +1,16 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {Table, Panel} from 'react-bootstrap'
 
 import {CampaignSummary} from 'spraying/classes/CampaignSummary'
+import {translate, locales} from 'app/utils/i18n'
 
 const sectorValueKey = (index, sector) => `Summary-${index}-${sector}`
 
 export const Summary = props => {
   const chemicalRows = props.campaignSummary.chemicalSummaries.map((chemicalSummary, summaryIndex) => (
     <tr key={summaryIndex}>
-      <td>C{chemicalSummary.chemicalId}</td>
+      <td>{translate(locales.CHEMICAL)} {chemicalSummary.chemicalId} [l]</td>
       <td>{chemicalSummary.quantity}</td>
       {props.chemicalDetailsVisible.includes(chemicalSummary.chemicalId) && chemicalSummary.sectorQuantities.map((sector, sectorIndex) => (
         <td key={sectorValueKey(summaryIndex, sectorIndex)}>{sector.quantity}</td>
@@ -18,7 +20,7 @@ export const Summary = props => {
 
   const weedRow = (
     <tr>
-      <td>weed</td>
+      <td>{translate(locales.WEED_INFESTATION)} [%]</td>
       <td>{props.campaignSummary.weedInfestationSummary.quantity}</td>
       {props.isWeedInfectionDetailsVisible && props.campaignSummary.weedInfestationSummary.sectorQuantities.map((sector, index) => (
         <td key={`Summary-weed-sector-${index}`}>{sector.quantity}</td>
@@ -27,31 +29,45 @@ export const Summary = props => {
   )
 
   const sectorHeader = (props.chemicalDetailsVisible.length || props.isWeedInfectionDetailsVisible) && ([
-    <th key="Summary-chemical-sector-1">Sector 1</th>,
-    <th key="Summary-chemical-sector-2">Sector 2</th>,
-    <th key="Summary-chemical-sector-3">Sector 3</th>,
-    <th key="Summary-chemical-sector-4">Sector 4</th>,
-    <th key="Summary-chemical-sector-5">Sector 5</th>,
-    <th key="Summary-chemical-sector-6">Sector 6</th>,
-    <th key="Summary-chemical-sector-7">Sector 7</th>,
-    <th key="Summary-chemical-sector-8">Sector 8</th>,
-    <th key="Summary-chemical-sector-9">Sector 9</th>,
+    <th key="Summary-chemical-sector-1">{translate(locales.SECTOR)} 1</th>,
+    <th key="Summary-chemical-sector-2">{translate(locales.SECTOR)} 2</th>,
+    <th key="Summary-chemical-sector-3">{translate(locales.SECTOR)} 3</th>,
+    <th key="Summary-chemical-sector-4">{translate(locales.SECTOR)} 4</th>,
+    <th key="Summary-chemical-sector-5">{translate(locales.SECTOR)} 5</th>,
+    <th key="Summary-chemical-sector-6">{translate(locales.SECTOR)} 6</th>,
+    <th key="Summary-chemical-sector-7">{translate(locales.SECTOR)} 7</th>,
+    <th key="Summary-chemical-sector-8">{translate(locales.SECTOR)} 8</th>,
+    <th key="Summary-chemical-sector-9">{translate(locales.SECTOR)} 9</th>,
   ])
 
   return (
-    <table>
-      <thead>
-      <tr>
-        <th/>
-        <th>sum</th>
-        {sectorHeader}
-      </tr>
-      </thead>
-      <tbody>
-      {weedRow}
-      {chemicalRows}
-      </tbody>
-    </table>
+    <Panel bsStyle="info">
+      <Panel.Heading>
+        <Panel.Title>Summary</Panel.Title>
+      </Panel.Heading>
+      <div
+        style={{overflowX: 'auto'}}
+      >
+        <Table
+          striped
+          bordered
+          condensed
+          hover
+        >
+          <thead>
+          <tr>
+            <th/>
+            <th>Sum</th>
+            {sectorHeader}
+          </tr>
+          </thead>
+          <tbody>
+          {weedRow}
+          {chemicalRows}
+          </tbody>
+        </Table>
+      </div>
+    </Panel>
   )
 
 }

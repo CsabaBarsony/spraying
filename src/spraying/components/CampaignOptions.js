@@ -1,7 +1,12 @@
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
+import {connect} from 'react-redux'
 
-export class CampaignOptions extends Component {
+import {locales, translate} from 'app/utils/i18n'
+import {Nav, NavDropdown, Form, Checkbox} from 'react-bootstrap'
+import {sprayingEvents} from 'spraying/spraying.statechart'
+
+export class CampaignOptionsComponent extends Component {
   state = {
     weed: false,
     chemical1: false,
@@ -33,54 +38,69 @@ export class CampaignOptions extends Component {
     const state = this.state
 
     return (
-      <form>
-        <div>
-          <input
-            type="checkbox"
-            checked={state.weed}
-            onChange={e => this.onChange(e.target.checked, 'weed')}
-          />
-          weed
-        </div>
-        <div>
-          <input
-            type="checkbox"
-            checked={state.chemical1}
-            onChange={e => this.onChange(e.target.checked, 'chemical1')}
-          />
-          chemical 1
-        </div>
-        <div>
-          <input
-            type="checkbox"
-            checked={state.chemical2}
-            onChange={e => this.onChange(e.target.checked, 'chemical2')}
-          />
-          chemical 2
-        </div>
-        <div>
-          <input
-            type="checkbox"
-            checked={state.chemical3}
-            onChange={e => this.onChange(e.target.checked, 'chemical3')}
-          />
-          chemical 3
-        </div>
-        <div>
-          <input
-            type="checkbox"
-            checked={state.chemical4}
-            onChange={e => this.onChange(e.target.checked, 'chemical4')}
-          />
-          chemical 4
-        </div>
-      </form>
+      <Nav>
+        <NavDropdown
+          id="spraying-options"
+          title={translate(locales.SETTINGS)}
+        >
+          <Form
+            style={{
+              paddingLeft: 5,
+              paddingRight: 5,
+            }}
+          >
+            <Checkbox
+              checked={state.weed}
+              onChange={e => this.onChange(e.target.checked, 'weed')}
+            >
+              {translate(locales.WEED_INFESTATION)}
+            </Checkbox>
+            <Checkbox
+              checked={state.chemical1}
+              onChange={e => this.onChange(e.target.checked, 'chemical1')}
+            >
+              {translate(locales.CHEMICAL)} 1
+            </Checkbox>
+            <Checkbox
+              checked={state.chemical2}
+              onChange={e => this.onChange(e.target.checked, 'chemical2')}
+            >
+              {translate(locales.CHEMICAL)} 2
+            </Checkbox>
+            <Checkbox
+              checked={state.chemical3}
+              onChange={e => this.onChange(e.target.checked, 'chemical3')}
+            >
+              {translate(locales.CHEMICAL)} 3
+            </Checkbox>
+            <Checkbox
+              checked={state.chemical4}
+              onChange={e => this.onChange(e.target.checked, 'chemical4')}
+            >
+              {translate(locales.CHEMICAL)} 4
+            </Checkbox>
+          </Form>
+        </NavDropdown>
+      </Nav>
     )
   }
 }
 
-CampaignOptions.propTypes = {
+CampaignOptionsComponent.propTypes = {
   chemicalDetailsVisible: PropTypes.arrayOf(PropTypes.number).isRequired,
   isWeedInfectionDetailsVisible: PropTypes.bool.isRequired,
   setCampaignOptions: PropTypes.func.isRequired,
 }
+
+export const CampaignOptions = connect(
+  state => ({
+    isWeedInfectionDetailsVisible: state.spraying.isWeedInfectionDetailsVisible,
+    chemicalDetailsVisible: state.spraying.chemicalDetailsVisible,
+  }),
+  dispatch => ({
+    setCampaignOptions: options => dispatch({
+      type: sprayingEvents.SET_OPTIONS,
+      ...options,
+    }),
+  }),
+)(CampaignOptionsComponent)
